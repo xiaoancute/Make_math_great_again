@@ -13,7 +13,7 @@ The project focuses on the reusable core:
 - thin FastAPI endpoints
 - Android 16 prototype that loads topics, tracks local mastery, and asks the teacher
 
-The Android app lives in `android-app/`. It is intentionally small: native Java Activity,
-no Compose, no extra UI framework, and no app-side domain logic. It lists knowledge
-points, opens a detail page, saves locally marked mastered topics, shows prerequisite
-gaps, and asks the backend for a student-facing teacher answer.
+The Android app lives in `android-app/`. It uses Kotlin, Jetpack Compose, and Material 3.
+The app keeps domain logic in the backend: it lists knowledge points, opens a detail page,
+saves locally marked mastered topics, shows prerequisite gaps, and asks the backend for a
+student-facing teacher answer.
