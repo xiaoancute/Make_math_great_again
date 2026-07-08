@@ -33,14 +33,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -80,17 +83,26 @@ private const val MASTERED_TOPICS = "mastered_topics"
 private const val API_BASE_URL = "http://10.0.2.2:8000"
 
 private val MmgaColors = lightColorScheme(
-    primary = Color(0xFF1D4ED8),
+    primary = Color(0xFF315CA8),
     onPrimary = Color.White,
-    secondary = Color(0xFF047A72),
-    tertiary = Color(0xFFB45309),
-    background = Color(0xFFF6F7FB),
+    primaryContainer = Color(0xFFE7EEF9),
+    onPrimaryContainer = Color(0xFF173765),
+    secondary = Color(0xFF17756B),
+    secondaryContainer = Color(0xFFE1F3EF),
+    tertiary = Color(0xFF9A5B10),
+    tertiaryContainer = Color(0xFFFFE9C2),
+    background = Color(0xFFF5F6F8),
     surface = Color.White,
-    surfaceVariant = Color(0xFFE8ECF4),
-    onSurface = Color(0xFF172033),
-    onSurfaceVariant = Color(0xFF596277),
+    surfaceVariant = Color(0xFFE7EAF0),
+    onSurface = Color(0xFF1D2430),
+    onSurfaceVariant = Color(0xFF5C6472),
+    outline = Color(0xFFD6DAE2),
     error = Color(0xFFB42318),
 )
+
+private val ScreenPadding = 18.dp
+private val CardShape = RoundedCornerShape(8.dp)
+private val PillShape = RoundedCornerShape(999.dp)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,6 +137,12 @@ private enum class TopicFilter(val label: String) {
     All("全部"),
     Open("待补"),
     Mastered("已理解"),
+}
+
+private enum class MainTab(val label: String) {
+    Knowledge("知识"),
+    Path("路线"),
+    Review("复习"),
 }
 
 @Composable
@@ -189,7 +207,12 @@ private fun AppScreen(
     onToggleMastered: (Topic) -> Unit,
     onAsk: suspend (Topic, String) -> Unit,
 ) {
+    var selectedTab by rememberSaveable { mutableStateOf(MainTab.Knowledge) }
+
     BackHandler(enabled = state.selected != null, onBack = onBack)
+    BackHandler(enabled = state.selected == null && selectedTab != MainTab.Knowledge) {
+        selectedTab = MainTab.Knowledge
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing,
@@ -209,20 +232,40 @@ private fun AppScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             )
         },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+            ) {
+                MainTab.entries.forEach { tab ->
+                    NavigationBarItem(
+                        selected = selectedTab == tab && state.selected == null,
+                        onClick = {
+                            if (state.selected != null) onBack()
+                            selectedTab = tab
+                        },
+                        icon = { TabIcon(tab) },
+                        label = { Text(tab.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                    )
+                }
+            }
+        },
     ) { padding ->
-        if (state.selected == null) {
-            TopicList(
-                state = state,
-                onReload = onReload,
-                onSelect = onSelect,
-                modifier = Modifier.padding(padding),
-            )
-        } else {
+        if (state.selected != null) {
             TopicDetail(
                 topic = state.selected,
                 topics = state.topics,
@@ -231,6 +274,89 @@ private fun AppScreen(
                 onToggleMastered = onToggleMastered,
                 onAsk = onAsk,
                 modifier = Modifier.padding(padding),
+            )
+        } else {
+            when (selectedTab) {
+                MainTab.Knowledge -> TopicList(
+                    state = state,
+                    onReload = onReload,
+                    onSelect = onSelect,
+                    modifier = Modifier.padding(padding),
+                )
+
+                MainTab.Path -> PathScreen(
+                    state = state,
+                    onReload = onReload,
+                    onSelect = onSelect,
+                    modifier = Modifier.padding(padding),
+                )
+
+                MainTab.Review -> ReviewScreen(
+                    state = state,
+                    onReload = onReload,
+                    onSelect = onSelect,
+                    modifier = Modifier.padding(padding),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TabIcon(tab: MainTab) {
+    when (tab) {
+        MainTab.Knowledge -> Icon(Icons.Filled.Search, contentDescription = null)
+        MainTab.Path -> RouteGlyph()
+        MainTab.Review -> ReviewGlyph()
+    }
+}
+
+@Composable
+private fun RouteGlyph() {
+    val contentColor = LocalContentColor.current
+
+    Column(
+        modifier = Modifier.size(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(contentColor),
+        )
+        Box(
+            modifier = Modifier
+                .width(2.dp)
+                .height(8.dp)
+                .background(contentColor.copy(alpha = 0.65f)),
+        )
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(contentColor),
+        )
+    }
+}
+
+@Composable
+private fun ReviewGlyph() {
+    val contentColor = LocalContentColor.current
+
+    Column(
+        modifier = Modifier.size(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        repeat(3) {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 2.dp)
+                    .width(16.dp)
+                    .height(2.dp)
+                    .background(contentColor),
             )
         }
     }
@@ -262,8 +388,8 @@ private fun TopicList(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = ScreenPadding),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             ProgressStrip(
@@ -282,6 +408,7 @@ private fun TopicList(
                 leadingIcon = {
                     Icon(Icons.Filled.Search, contentDescription = null)
                 },
+                shape = CardShape,
             )
         }
         item {
@@ -323,52 +450,230 @@ private fun TopicList(
 }
 
 @Composable
-private fun ProgressStrip(
-    total: Int,
-    mastered: Int,
-    loading: Boolean,
+private fun PathScreen(
+    state: UiState,
+    onReload: () -> Unit,
+    onSelect: (Topic) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val groups = state.topics.groupBy { topic -> topic.grade.ifBlank { "未分级" } }
+
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = ScreenPadding),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item {
+            ProgressStrip(
+                total = state.topics.size,
+                mastered = state.mastered.size,
+                loading = state.loading,
+            )
+        }
+        if (state.error != null) {
+            item { ErrorPanel(message = state.error, onReload = onReload) }
+        }
+        if (state.loading && state.topics.isEmpty()) {
+            items(4) { LoadingTopicRow() }
+        } else if (groups.isEmpty()) {
+            item { EmptyPanel("暂无路线数据") }
+        } else {
+            groups.forEach { (grade, topics) ->
+                item {
+                    SectionHeader(
+                        title = grade,
+                        meta = "${topics.count { it.id in state.mastered }}/${topics.size} 已理解",
+                    )
+                }
+                items(topics, key = { "path-${it.id}" }) { topic ->
+                    TopicRow(topic = topic, mastered = topic.id in state.mastered) {
+                        onSelect(topic)
+                    }
+                }
+            }
+        }
+        item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun ReviewScreen(
+    state: UiState,
+    onReload: () -> Unit,
+    onSelect: (Topic) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val knownIds = state.topics.map { it.id }.toSet()
+    val openTopics = state.topics.filter { it.id !in state.mastered }
+    val readyTopics = openTopics.filter { topic ->
+        topic.prerequisites
+            .filter { prerequisite -> prerequisite in knownIds }
+            .all { prerequisite -> prerequisite in state.mastered }
+    }
+    val nextTopics = (readyTopics.ifEmpty { openTopics }).take(8)
+    val masteredTopics = state.topics.filter { it.id in state.mastered }
+
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = ScreenPadding),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item {
+            ProgressStrip(
+                total = state.topics.size,
+                mastered = state.mastered.size,
+                loading = state.loading,
+            )
+        }
+        if (state.error != null) {
+            item { ErrorPanel(message = state.error, onReload = onReload) }
+        }
+        if (state.loading && state.topics.isEmpty()) {
+            items(4) { LoadingTopicRow() }
+        } else {
+            item {
+                SectionHeader(
+                    title = "下一步",
+                    meta = if (nextTopics.isEmpty()) {
+                        "没有待补知识点"
+                    } else {
+                        "${nextTopics.size} 个可继续知识点"
+                    },
+                )
+            }
+            if (nextTopics.isEmpty()) {
+                item { EmptyPanel("暂无待补知识点") }
+            } else {
+                items(nextTopics, key = { "next-${it.id}" }) { topic ->
+                    TopicRow(topic = topic, mastered = false) {
+                        onSelect(topic)
+                    }
+                }
+            }
+
+            item {
+                SectionHeader(
+                    title = "已理解",
+                    meta = "${masteredTopics.size} 个知识点",
+                )
+            }
+            if (masteredTopics.isEmpty()) {
+                item { EmptyPanel("还没有已理解记录") }
+            } else {
+                items(masteredTopics, key = { "review-${it.id}" }) { topic ->
+                    TopicRow(topic = topic, mastered = true) {
+                        onSelect(topic)
+                    }
+                }
+            }
+        }
+        item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    meta: String,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom,
     ) {
-        MetricPill(
-            label = if (loading) "同步中" else "全部",
-            value = total.toString(),
-            container = Color(0xFFEAF2FF),
-            content = Color(0xFF1D4ED8),
-            modifier = Modifier.weight(1f),
+        Text(
+            title,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
         )
-        MetricPill(
-            label = "已理解",
-            value = mastered.toString(),
-            container = Color(0xFFE7F8EF),
-            content = Color(0xFF047A72),
-            modifier = Modifier.weight(1f),
+        Text(
+            meta,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
         )
     }
 }
 
 @Composable
-private fun MetricPill(
-    label: String,
-    value: String,
-    container: Color,
-    content: Color,
-    modifier: Modifier = Modifier,
+private fun ProgressStrip(
+    total: Int,
+    mastered: Int,
+    loading: Boolean,
 ) {
+    val open = (total - mastered).coerceAtLeast(0)
+    val progress = if (total == 0) 0f else mastered.toFloat() / total.toFloat()
+
     Surface(
-        modifier = modifier.height(72.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = container,
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(label, color = content, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            Text(value, color = Color(0xFF172033), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                MetricBlock(
+                    label = if (loading) "同步中" else "全部",
+                    value = total.toString(),
+                    modifier = Modifier.weight(1f),
+                )
+                MetricBlock(
+                    label = "已理解",
+                    value = mastered.toString(),
+                    modifier = Modifier.weight(1f),
+                    valueColor = MaterialTheme.colorScheme.secondary,
+                )
+                MetricBlock(
+                    label = "待补",
+                    value = open.toString(),
+                    modifier = Modifier.weight(1f),
+                    valueColor = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(PillShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .height(8.dp)
+                        .background(MaterialTheme.colorScheme.primary),
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun MetricBlock(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            label,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Text(value, color = valueColor, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -381,9 +686,9 @@ private fun TopicRow(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = CardShape,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
             modifier = Modifier
@@ -428,12 +733,16 @@ private fun TopicRow(
 
 @Composable
 private fun StatusPill(mastered: Boolean) {
-    val container = if (mastered) Color(0xFFE7F8EF) else Color(0xFFFFF7E6)
-    val content = if (mastered) Color(0xFF047A72) else Color(0xFFB45309)
+    val container = if (mastered) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val content = if (mastered) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary
     val label = if (mastered) "已理解" else "待补"
 
     Surface(
-        shape = RoundedCornerShape(999.dp),
+        shape = PillShape,
         color = container,
     ) {
         Row(
@@ -470,8 +779,8 @@ private fun TopicDetail(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = ScreenPadding),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             DetailHeader(
@@ -527,6 +836,7 @@ private fun TopicDetail(
                     minLines = 3,
                     label = { Text("问题") },
                     enabled = !asking,
+                    shape = CardShape,
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -544,6 +854,7 @@ private fun TopicDetail(
                             }
                         },
                         enabled = question.isNotBlank() && !asking,
+                        shape = CardShape,
                     ) {
                         if (asking) {
                             CircularProgressIndicator(
@@ -573,12 +884,13 @@ private fun DetailHeader(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        color = Color(0xFFEAF2FF),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -587,21 +899,28 @@ private fun DetailHeader(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         topic.name.ifBlank { topic.id },
-                        fontSize = 24.sp,
-                        lineHeight = 30.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 26.sp,
+                        lineHeight = 32.sp,
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         topic.human,
-                        color = Color(0xFF435064),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                     )
                 }
                 if (topic.grade.isNotBlank()) SmallTag(topic.grade)
             }
-            Button(onClick = onToggleMastered) {
-                Text(if (mastered) "取消已理解" else "标记已理解")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                StatusPill(mastered = mastered)
+                Button(onClick = onToggleMastered, shape = CardShape) {
+                    Text(if (mastered) "取消已理解" else "标记已理解")
+                }
             }
         }
     }
@@ -627,9 +946,9 @@ private fun DetailPanel(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = CardShape,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -637,8 +956,8 @@ private fun DetailPanel(
         ) {
             Text(
                 title,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
             )
             content()
@@ -672,10 +991,10 @@ private fun RouteStep(index: Int, value: String) {
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFEAF2FF)),
+                .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
-            Text(index.toString(), color = Color(0xFF1D4ED8), fontSize = 12.sp)
+            Text(index.toString(), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
         }
         BodyText(value, modifier = Modifier.weight(1f))
     }
@@ -685,13 +1004,13 @@ private fun RouteStep(index: Int, value: String) {
 private fun AnswerBubble(answer: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF1F8F7),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Text(
             answer,
             modifier = Modifier.padding(14.dp),
-            color = Color(0xFF27313F),
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 15.sp,
             lineHeight = 23.sp,
         )
@@ -706,7 +1025,7 @@ private fun BodyText(
     Text(
         value,
         modifier = modifier,
-        color = Color(0xFF27313F),
+        color = MaterialTheme.colorScheme.onSurface,
         fontSize = 15.sp,
         lineHeight = 23.sp,
     )
@@ -714,10 +1033,19 @@ private fun BodyText(
 
 @Composable
 private fun SmallTag(value: String) {
-    AssistChip(
-        onClick = {},
-        label = { Text(value, fontSize = 12.sp) },
-    )
+    Surface(
+        shape = PillShape,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Text(
+            value,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+        )
+    }
 }
 
 @Composable
@@ -727,7 +1055,7 @@ private fun ErrorPanel(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = CardShape,
         color = Color(0xFFFFF1F0),
         border = BorderStroke(1.dp, Color(0xFFFFDAD6)),
     ) {
@@ -740,7 +1068,7 @@ private fun ErrorPanel(
                 Text("加载失败", color = Color(0xFFB42318), fontWeight = FontWeight.SemiBold)
                 Text(message, color = Color(0xFF8C1D18), fontSize = 13.sp, maxLines = 2)
             }
-            Button(onClick = onReload) {
+            Button(onClick = onReload, shape = CardShape) {
                 Text("重试")
             }
         }
@@ -748,15 +1076,15 @@ private fun ErrorPanel(
 }
 
 @Composable
-private fun EmptyPanel() {
+private fun EmptyPanel(message: String = "没有匹配结果") {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = CardShape,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Text(
-            "没有匹配结果",
+            message,
             modifier = Modifier.padding(18.dp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -767,9 +1095,9 @@ private fun EmptyPanel() {
 private fun LoadingTopicRow() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = CardShape,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -788,8 +1116,8 @@ private fun LoadingBar(width: Float, height: androidx.compose.ui.unit.Dp) {
         modifier = Modifier
             .fillMaxWidth(width)
             .height(height)
-            .clip(RoundedCornerShape(999.dp))
-            .background(Color(0xFFE8ECF4)),
+            .clip(PillShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     )
 }
 
