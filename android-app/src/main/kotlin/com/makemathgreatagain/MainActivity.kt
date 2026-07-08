@@ -413,7 +413,9 @@ private fun SchoolRouteScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf(TopicFilter.All) }
-    val filteredTopics = state.topics.filter { topic ->
+    val orderedTopics = state.topics.schoolOrdered()
+    val stepNumbers = orderedTopics.mapIndexed { index, topic -> topic.id to index + 1 }.toMap()
+    val filteredTopics = orderedTopics.filter { topic ->
         val matchesQuery = query.trim().isBlank() ||
             listOf(topic.name, topic.schoolPlace(), topic.human).any {
                 it.contains(query.trim(), ignoreCase = true)
@@ -434,9 +436,9 @@ private fun SchoolRouteScreen(
     ) {
         item {
             RouteChoiceHeader(
-                title = "跟学校学",
+                title = "跟学校学：按课本顺序",
                 body = "如果你想找老师课上正在讲的内容，先看这里。"
-                    + "这里按几年级、哪一章、哪一节来排。",
+                    + "这里从一年级排到九年级，每个知识点都标出课本位置。",
             )
         }
         item {
@@ -491,7 +493,7 @@ private fun SchoolRouteScreen(
                 TopicRow(
                     topic = topic,
                     mastered = topic.id in state.mastered,
-                    primaryMeta = topic.schoolPlace(),
+                    primaryMeta = "第 ${stepNumbers.getValue(topic.id)} 步 · ${topic.schoolPlace()}",
                     secondaryMeta = "这句话先帮你听懂：${topic.human}",
                 ) {
                     onSelect(topic)
@@ -509,7 +511,8 @@ private fun UnderstandingRouteScreen(
     onSelect: (Topic) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val groups = state.topics.groupBy { topic -> topic.route.firstOrNull().orEmpty().ifBlank { "先弄懂意思" } }
+    val orderedTopics = state.topics.understandingOrdered()
+    val stepNumbers = orderedTopics.mapIndexed { index, topic -> topic.id to index + 1 }.toMap()
 
     LazyColumn(
         modifier = modifier
@@ -519,9 +522,9 @@ private fun UnderstandingRouteScreen(
     ) {
         item {
             RouteChoiceHeader(
-                title = "按理解补",
+                title = "按理解补：按先后顺序",
                 body = "如果你不知道一个词到底是什么意思，走这条路。"
-                    + "它不按课本顺序，而是从生活里的意思开始，一步一步到正式说法。",
+                    + "它先补更早需要懂的东西，再走到后面的正式说法。",
             )
         }
         if (state.error != null) {
@@ -529,25 +532,23 @@ private fun UnderstandingRouteScreen(
         }
         if (state.loading && state.topics.isEmpty()) {
             items(4) { LoadingTopicRow() }
-        } else if (groups.isEmpty()) {
+        } else if (orderedTopics.isEmpty()) {
             item { EmptyPanel("暂无理解路线") }
         } else {
-            groups.forEach { (start, topics) ->
-                item {
-                    SectionHeader(
-                        title = "先从：$start",
-                        meta = "${topics.count { it.id in state.mastered }}/${topics.size} 已经懂",
-                    )
-                }
-                items(topics, key = { "understand-${it.id}" }) { topic ->
-                    TopicRow(
-                        topic = topic,
-                        mastered = topic.id in state.mastered,
-                        primaryMeta = topic.understandingPreview(),
-                        secondaryMeta = topic.schoolPlace(),
-                    ) {
-                        onSelect(topic)
-                    }
+            item {
+                SectionHeader(
+                    title = "理解顺序",
+                    meta = "${orderedTopics.count { it.id in state.mastered }}/${orderedTopics.size} 已经懂",
+                )
+            }
+            items(orderedTopics, key = { "understand-${it.id}" }) { topic ->
+                TopicRow(
+                    topic = topic,
+                    mastered = topic.id in state.mastered,
+                    primaryMeta = "第 ${stepNumbers.getValue(topic.id)} 步 · ${topic.understandingPreview()}",
+                    secondaryMeta = "学校里通常在：${topic.schoolPlace()}",
+                ) {
+                    onSelect(topic)
                 }
             }
         }
@@ -594,14 +595,16 @@ private fun ReviewScreen(
     modifier: Modifier = Modifier,
 ) {
     val knownIds = state.topics.map { it.id }.toSet()
-    val openTopics = state.topics.filter { it.id !in state.mastered }
+    val orderedTopics = state.topics.understandingOrdered()
+    val stepNumbers = orderedTopics.mapIndexed { index, topic -> topic.id to index + 1 }.toMap()
+    val openTopics = orderedTopics.filter { it.id !in state.mastered }
     val readyTopics = openTopics.filter { topic ->
         topic.prerequisites
             .filter { prerequisite -> prerequisite in knownIds }
             .all { prerequisite -> prerequisite in state.mastered }
     }
     val nextTopics = (readyTopics.ifEmpty { openTopics }).take(8)
-    val masteredTopics = state.topics.filter { it.id in state.mastered }
+    val masteredTopics = orderedTopics.filter { it.id in state.mastered }
 
     LazyColumn(
         modifier = modifier
@@ -639,7 +642,7 @@ private fun ReviewScreen(
                     TopicRow(
                         topic = topic,
                         mastered = false,
-                        primaryMeta = "建议下一步：先读人话解释，再看例子",
+                        primaryMeta = "第 ${stepNumbers.getValue(topic.id)} 步 · 下一步先学它",
                         secondaryMeta = topic.schoolPlace(),
                     ) {
                         onSelect(topic)
@@ -1289,6 +1292,92 @@ private fun Topic.understandingPreview(): String {
     } else {
         "按这个顺序想：${steps.joinToString(" -> ")}"
     }
+}
+
+private fun List<Topic>.schoolOrdered(): List<Topic> = mapIndexed { index, topic -> index to topic }
+    .sortedWith(
+        compareBy<Pair<Int, Topic>> { it.second.textbookPositions.firstOrNull()?.grade.gradeOrder() }
+            .thenBy { it.second.textbookPositions.firstOrNull()?.chapter.chapterOrder() }
+            .thenBy { it.first },
+    )
+    .map { it.second }
+
+private fun List<Topic>.understandingOrdered(): List<Topic> {
+    val schoolOrder = schoolOrdered()
+    val byId = schoolOrder.associateBy { it.id }
+    val unresolved = schoolOrder.associate { it.id to it.prerequisites.count { id -> id in byId } }
+        .toMutableMap()
+    val dependents = mutableMapOf<String, MutableList<String>>()
+    schoolOrder.forEach { topic ->
+        topic.prerequisites.filter { it in byId }.forEach { prerequisite ->
+            dependents.getOrPut(prerequisite) { mutableListOf() }.add(topic.id)
+        }
+    }
+    val queue = schoolOrder.filter { unresolved[it.id] == 0 }.map { it.id }.toMutableList()
+    val result = mutableListOf<Topic>()
+    while (queue.isNotEmpty()) {
+        val id = queue.removeAt(0)
+        val topic = byId[id] ?: continue
+        if (result.any { it.id == id }) continue
+        result += topic
+        dependents[id].orEmpty().forEach { nextId ->
+            val nextCount = (unresolved[nextId] ?: 0) - 1
+            unresolved[nextId] = nextCount
+            if (nextCount == 0) queue += nextId
+        }
+    }
+    if (result.size == schoolOrder.size) return result
+    val seen = result.map { it.id }.toSet()
+    return result + schoolOrder.filter { it.id !in seen }
+}
+
+private fun String?.gradeOrder(): Int {
+    val value = this.orEmpty()
+    val grade = when {
+        "一年级" in value -> 1
+        "二年级" in value -> 2
+        "三年级" in value -> 3
+        "四年级" in value -> 4
+        "五年级" in value -> 5
+        "六年级" in value -> 6
+        "七年级" in value -> 7
+        "八年级" in value -> 8
+        "九年级" in value -> 9
+        "小学" in value -> 3
+        "初中" in value -> 7
+        else -> 99
+    }
+    val volume = when {
+        "上册" in value -> 0
+        "下册" in value -> 1
+        else -> 0
+    }
+    return grade * 10 + volume
+}
+
+private fun String?.chapterOrder(): Int {
+    val value = this.orEmpty()
+    val chineseDigits = mapOf(
+        '一' to 1,
+        '二' to 2,
+        '三' to 3,
+        '四' to 4,
+        '五' to 5,
+        '六' to 6,
+        '七' to 7,
+        '八' to 8,
+        '九' to 9,
+        '十' to 10,
+    )
+    Regex("""第(\d+)章""").find(value)?.groupValues?.get(1)?.toIntOrNull()?.let { return it }
+    Regex("""第([一二三四五六七八九十]+)章""").find(value)?.groupValues?.get(1)?.let { text ->
+        if (text == "十") return 10
+        if (text.length == 1) return chineseDigits[text.first()] ?: 99
+        if (text.startsWith("十")) return 10 + (chineseDigits[text.last()] ?: 0)
+        if (text.endsWith("十")) return (chineseDigits[text.first()] ?: 0) * 10
+        return (chineseDigits[text.first()] ?: 0) * 10 + (chineseDigits[text.last()] ?: 0)
+    }
+    return 99
 }
 
 private suspend fun fetchTopics(): List<Topic> = withContext(Dispatchers.IO) {
