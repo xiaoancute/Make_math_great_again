@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -140,6 +141,12 @@ private data class UiState(
     val selected: Topic? = null,
     val mastered: Set<String> = emptySet(),
     val answer: String = "",
+)
+
+private data class GradeBucket(
+    val key: String,
+    val label: String,
+    val topics: List<Topic>,
 )
 
 private enum class TopicFilter(val label: String) {
@@ -414,11 +421,22 @@ private fun SchoolRouteScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf(TopicFilter.All) }
     val orderedTopics = state.topics.schoolOrdered()
-    val stepNumbers = orderedTopics.mapIndexed { index, topic -> topic.id to index + 1 }.toMap()
-    val filteredTopics = orderedTopics.filter { topic ->
-        val matchesQuery = query.trim().isBlank() ||
+    val gradeBuckets = orderedTopics.gradeBuckets()
+    val gradeKeys = gradeBuckets.joinToString("|") { it.key }
+    var selectedGradeKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedGrade = gradeBuckets.firstOrNull { it.key == selectedGradeKey }
+        ?: gradeBuckets.firstOrNull()
+    val searchText = query.trim()
+    val sourceTopics = if (searchText.isBlank()) {
+        selectedGrade?.topics.orEmpty()
+    } else {
+        orderedTopics
+    }
+    val stepNumbers = sourceTopics.mapIndexed { index, topic -> topic.id to index + 1 }.toMap()
+    val filteredTopics = sourceTopics.filter { topic ->
+        val matchesQuery = searchText.isBlank() ||
             listOf(topic.name, topic.schoolPlace(), topic.human).any {
-                it.contains(query.trim(), ignoreCase = true)
+                it.contains(searchText, ignoreCase = true)
             }
         val matchesFilter = when (filter) {
             TopicFilter.All -> true
@@ -428,24 +446,31 @@ private fun SchoolRouteScreen(
         matchesQuery && matchesFilter
     }
 
+    LaunchedEffect(gradeKeys) {
+        val keys = gradeBuckets.map { it.key }
+        if (keys.isNotEmpty() && (selectedGradeKey == null || selectedGradeKey !in keys)) {
+            selectedGradeKey = gradeBuckets.first().key
+        }
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = ScreenPadding),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            RouteChoiceHeader(
-                title = "跟学校学：按课本顺序",
-                body = "如果你想找老师课上正在讲的内容，先看这里。"
-                    + "这里从一年级排到九年级，每个知识点都标出课本位置。",
+            SchoolHomeHeader(
+                selectedGrade = selectedGrade?.label ?: "年级",
+                total = state.topics.size,
+                mastered = state.mastered.size,
             )
         }
         item {
-            ProgressStrip(
-                total = state.topics.size,
-                mastered = state.mastered.size,
-                loading = state.loading,
+            GradeSelector(
+                buckets = gradeBuckets,
+                selectedKey = selectedGrade?.key,
+                onSelect = { selectedGradeKey = it },
             )
         }
         item {
@@ -454,7 +479,7 @@ private fun SchoolRouteScreen(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("搜课本里的词，比如 分数、方程") },
+                label = { Text("搜全部课本，比如 分数、方程") },
                 leadingIcon = {
                     Icon(Icons.Filled.Search, contentDescription = null)
                 },
@@ -490,11 +515,12 @@ private fun SchoolRouteScreen(
             }
         } else {
             items(filteredTopics, key = { it.id }) { topic ->
-                TopicRow(
+                CompactTopicRow(
+                    step = stepNumbers.getValue(topic.id),
                     topic = topic,
                     mastered = topic.id in state.mastered,
-                    primaryMeta = "第 ${stepNumbers.getValue(topic.id)} 步 · ${topic.schoolPlace()}",
-                    secondaryMeta = "这句话先帮你听懂：${topic.human}",
+                    primaryMeta = topic.schoolPlace(),
+                    secondaryMeta = topic.human,
                 ) {
                     onSelect(topic)
                 }
@@ -542,10 +568,11 @@ private fun UnderstandingRouteScreen(
                 )
             }
             items(orderedTopics, key = { "understand-${it.id}" }) { topic ->
-                TopicRow(
+                CompactTopicRow(
+                    step = stepNumbers.getValue(topic.id),
                     topic = topic,
                     mastered = topic.id in state.mastered,
-                    primaryMeta = "第 ${stepNumbers.getValue(topic.id)} 步 · ${topic.understandingPreview()}",
+                    primaryMeta = topic.understandingPreview(),
                     secondaryMeta = "学校里通常在：${topic.schoolPlace()}",
                 ) {
                     onSelect(topic)
@@ -603,7 +630,7 @@ private fun ReviewScreen(
             .filter { prerequisite -> prerequisite in knownIds }
             .all { prerequisite -> prerequisite in state.mastered }
     }
-    val nextTopics = (readyTopics.ifEmpty { openTopics }).take(8)
+    val nextTopics = (readyTopics.ifEmpty { openTopics }).take(1)
     val masteredTopics = orderedTopics.filter { it.id in state.mastered }
 
     LazyColumn(
@@ -631,7 +658,7 @@ private fun ReviewScreen(
                     meta = if (nextTopics.isEmpty()) {
                         "没有还没懂的知识"
                     } else {
-                        "${nextTopics.size} 个可继续知识点"
+                        "按理解顺序只给一个"
                     },
                 )
             }
@@ -639,10 +666,11 @@ private fun ReviewScreen(
                 item { EmptyPanel("暂无还没懂的知识") }
             } else {
                 items(nextTopics, key = { "next-${it.id}" }) { topic ->
-                    TopicRow(
+                    CompactTopicRow(
+                        step = stepNumbers.getValue(topic.id),
                         topic = topic,
                         mastered = false,
-                        primaryMeta = "第 ${stepNumbers.getValue(topic.id)} 步 · 下一步先学它",
+                        primaryMeta = "下一步先学它",
                         secondaryMeta = topic.schoolPlace(),
                     ) {
                         onSelect(topic)
@@ -660,7 +688,8 @@ private fun ReviewScreen(
                 item { EmptyPanel("还没有已经懂的记录") }
             } else {
                 items(masteredTopics, key = { "review-${it.id}" }) { topic ->
-                    TopicRow(
+                    CompactTopicRow(
+                        step = stepNumbers.getValue(topic.id),
                         topic = topic,
                         mastered = true,
                         primaryMeta = "复习时先问自己：我能用自己的话说出来吗？",
@@ -672,6 +701,68 @@ private fun ReviewScreen(
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun SchoolHomeHeader(
+    selectedGrade: String,
+    total: Int,
+    mastered: Int,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    "校内路线",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    "现在看：$selectedGrade",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            SmallTag("已懂 $mastered/$total")
+        }
+    }
+}
+
+@Composable
+private fun GradeSelector(
+    buckets: List<GradeBucket>,
+    selectedKey: String?,
+    onSelect: (String) -> Unit,
+) {
+    if (buckets.isEmpty()) return
+
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(buckets, key = { it.key }) { bucket ->
+            FilterChip(
+                selected = bucket.key == selectedKey,
+                onClick = { onSelect(bucket.key) },
+                label = { Text("${bucket.label} ${bucket.topics.size}") },
+            )
+        }
     }
 }
 
@@ -776,6 +867,77 @@ private fun MetricBlock(
             fontWeight = FontWeight.Medium,
         )
         Text(value, color = valueColor, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CompactTopicRow(
+    step: Int,
+    topic: Topic,
+    mastered: Boolean,
+    primaryMeta: String,
+    secondaryMeta: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    step.toString(),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    topic.name.ifBlank { topic.id },
+                    fontSize = 17.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    primaryMeta,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    secondaryMeta,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            StatusPill(mastered = mastered)
+        }
     }
 }
 
@@ -1301,6 +1463,47 @@ private fun List<Topic>.schoolOrdered(): List<Topic> = mapIndexed { index, topic
             .thenBy { it.first },
     )
     .map { it.second }
+
+private fun List<Topic>.gradeBuckets(): List<GradeBucket> {
+    val order = listOf(
+        "一年级",
+        "二年级",
+        "三年级",
+        "四年级",
+        "五年级",
+        "六年级",
+        "七年级",
+        "八年级",
+        "九年级",
+        "小学",
+        "初中",
+        "其他",
+    )
+    val grouped = groupBy { it.schoolGradeKey() }
+    return order.mapNotNull { key ->
+        grouped[key]?.let { topics ->
+            GradeBucket(key = key, label = key, topics = topics)
+        }
+    }
+}
+
+private fun Topic.schoolGradeKey(): String {
+    val value = textbookPositions.firstOrNull()?.grade.orEmpty()
+    return when {
+        "一年级" in value -> "一年级"
+        "二年级" in value -> "二年级"
+        "三年级" in value -> "三年级"
+        "四年级" in value -> "四年级"
+        "五年级" in value -> "五年级"
+        "六年级" in value -> "六年级"
+        "七年级" in value -> "七年级"
+        "八年级" in value -> "八年级"
+        "九年级" in value -> "九年级"
+        gradeBand == "primary" -> "小学"
+        gradeBand == "junior" -> "初中"
+        else -> "其他"
+    }
+}
 
 private fun List<Topic>.understandingOrdered(): List<Topic> {
     val schoolOrder = schoolOrdered()
