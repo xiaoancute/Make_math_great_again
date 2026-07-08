@@ -115,13 +115,22 @@ class MainActivity : ComponentActivity() {
 private data class Topic(
     val id: String,
     val name: String,
-    val grade: String,
+    val gradeBand: String,
+    val textbookPositions: List<TextbookPosition>,
     val human: String,
     val why: String,
     val prerequisites: List<String>,
     val next: List<String>,
     val terms: Map<String, String>,
+    val schoolRoute: List<String>,
     val route: List<String>,
+)
+
+private data class TextbookPosition(
+    val curriculum: String,
+    val grade: String,
+    val chapter: String,
+    val section: String,
 )
 
 private data class UiState(
@@ -135,13 +144,13 @@ private data class UiState(
 
 private enum class TopicFilter(val label: String) {
     All("全部"),
-    Open("待补"),
-    Mastered("已理解"),
+    Open("还没懂"),
+    Mastered("已经懂"),
 }
 
 private enum class MainTab(val label: String) {
-    Knowledge("知识"),
-    Path("路线"),
+    School("校内"),
+    Understand("理解"),
     Review("复习"),
 }
 
@@ -207,11 +216,11 @@ private fun AppScreen(
     onToggleMastered: (Topic) -> Unit,
     onAsk: suspend (Topic, String) -> Unit,
 ) {
-    var selectedTab by rememberSaveable { mutableStateOf(MainTab.Knowledge) }
+    var selectedTab by rememberSaveable { mutableStateOf(MainTab.School) }
 
     BackHandler(enabled = state.selected != null, onBack = onBack)
-    BackHandler(enabled = state.selected == null && selectedTab != MainTab.Knowledge) {
-        selectedTab = MainTab.Knowledge
+    BackHandler(enabled = state.selected == null && selectedTab != MainTab.School) {
+        selectedTab = MainTab.School
     }
 
     Scaffold(
@@ -277,14 +286,14 @@ private fun AppScreen(
             )
         } else {
             when (selectedTab) {
-                MainTab.Knowledge -> TopicList(
+                MainTab.School -> SchoolRouteScreen(
                     state = state,
                     onReload = onReload,
                     onSelect = onSelect,
                     modifier = Modifier.padding(padding),
                 )
 
-                MainTab.Path -> PathScreen(
+                MainTab.Understand -> UnderstandingRouteScreen(
                     state = state,
                     onReload = onReload,
                     onSelect = onSelect,
@@ -305,9 +314,41 @@ private fun AppScreen(
 @Composable
 private fun TabIcon(tab: MainTab) {
     when (tab) {
-        MainTab.Knowledge -> Icon(Icons.Filled.Search, contentDescription = null)
-        MainTab.Path -> RouteGlyph()
+        MainTab.School -> SchoolGlyph()
+        MainTab.Understand -> RouteGlyph()
         MainTab.Review -> ReviewGlyph()
+    }
+}
+
+@Composable
+private fun SchoolGlyph() {
+    val contentColor = LocalContentColor.current
+
+    Column(
+        modifier = Modifier.size(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .width(16.dp)
+                .height(3.dp)
+                .background(contentColor),
+        )
+        Spacer(Modifier.height(3.dp))
+        Box(
+            modifier = Modifier
+                .width(16.dp)
+                .height(3.dp)
+                .background(contentColor.copy(alpha = 0.75f)),
+        )
+        Spacer(Modifier.height(3.dp))
+        Box(
+            modifier = Modifier
+                .width(16.dp)
+                .height(3.dp)
+                .background(contentColor.copy(alpha = 0.5f)),
+        )
     }
 }
 
@@ -364,7 +405,7 @@ private fun ReviewGlyph() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TopicList(
+private fun SchoolRouteScreen(
     state: UiState,
     onReload: () -> Unit,
     onSelect: (Topic) -> Unit,
@@ -374,7 +415,7 @@ private fun TopicList(
     var filter by rememberSaveable { mutableStateOf(TopicFilter.All) }
     val filteredTopics = state.topics.filter { topic ->
         val matchesQuery = query.trim().isBlank() ||
-            listOf(topic.name, topic.grade, topic.human).any {
+            listOf(topic.name, topic.schoolPlace(), topic.human).any {
                 it.contains(query.trim(), ignoreCase = true)
             }
         val matchesFilter = when (filter) {
@@ -392,6 +433,13 @@ private fun TopicList(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
+            RouteChoiceHeader(
+                title = "跟学校学",
+                body = "如果你想找老师课上正在讲的内容，先看这里。"
+                    + "这里按几年级、哪一章、哪一节来排。",
+            )
+        }
+        item {
             ProgressStrip(
                 total = state.topics.size,
                 mastered = state.mastered.size,
@@ -404,7 +452,7 @@ private fun TopicList(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("搜索知识点") },
+                label = { Text("搜课本里的词，比如 分数、方程") },
                 leadingIcon = {
                     Icon(Icons.Filled.Search, contentDescription = null)
                 },
@@ -440,7 +488,12 @@ private fun TopicList(
             }
         } else {
             items(filteredTopics, key = { it.id }) { topic ->
-                TopicRow(topic = topic, mastered = topic.id in state.mastered) {
+                TopicRow(
+                    topic = topic,
+                    mastered = topic.id in state.mastered,
+                    primaryMeta = topic.schoolPlace(),
+                    secondaryMeta = "这句话先帮你听懂：${topic.human}",
+                ) {
                     onSelect(topic)
                 }
             }
@@ -450,13 +503,13 @@ private fun TopicList(
 }
 
 @Composable
-private fun PathScreen(
+private fun UnderstandingRouteScreen(
     state: UiState,
     onReload: () -> Unit,
     onSelect: (Topic) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val groups = state.topics.groupBy { topic -> topic.grade.ifBlank { "未分级" } }
+    val groups = state.topics.groupBy { topic -> topic.route.firstOrNull().orEmpty().ifBlank { "先弄懂意思" } }
 
     LazyColumn(
         modifier = modifier
@@ -465,10 +518,10 @@ private fun PathScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            ProgressStrip(
-                total = state.topics.size,
-                mastered = state.mastered.size,
-                loading = state.loading,
+            RouteChoiceHeader(
+                title = "按理解补",
+                body = "如果你不知道一个词到底是什么意思，走这条路。"
+                    + "它不按课本顺序，而是从生活里的意思开始，一步一步到正式说法。",
             )
         }
         if (state.error != null) {
@@ -477,23 +530,59 @@ private fun PathScreen(
         if (state.loading && state.topics.isEmpty()) {
             items(4) { LoadingTopicRow() }
         } else if (groups.isEmpty()) {
-            item { EmptyPanel("暂无路线数据") }
+            item { EmptyPanel("暂无理解路线") }
         } else {
-            groups.forEach { (grade, topics) ->
+            groups.forEach { (start, topics) ->
                 item {
                     SectionHeader(
-                        title = grade,
-                        meta = "${topics.count { it.id in state.mastered }}/${topics.size} 已理解",
+                        title = "先从：$start",
+                        meta = "${topics.count { it.id in state.mastered }}/${topics.size} 已经懂",
                     )
                 }
-                items(topics, key = { "path-${it.id}" }) { topic ->
-                    TopicRow(topic = topic, mastered = topic.id in state.mastered) {
+                items(topics, key = { "understand-${it.id}" }) { topic ->
+                    TopicRow(
+                        topic = topic,
+                        mastered = topic.id in state.mastered,
+                        primaryMeta = topic.understandingPreview(),
+                        secondaryMeta = topic.schoolPlace(),
+                    ) {
                         onSelect(topic)
                     }
                 }
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun RouteChoiceHeader(
+    title: String,
+    body: String,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                title,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                body,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.sp,
+                lineHeight = 21.sp,
+            )
+        }
     }
 }
 
@@ -537,17 +626,22 @@ private fun ReviewScreen(
                 SectionHeader(
                     title = "下一步",
                     meta = if (nextTopics.isEmpty()) {
-                        "没有待补知识点"
+                        "没有还没懂的知识"
                     } else {
                         "${nextTopics.size} 个可继续知识点"
                     },
                 )
             }
             if (nextTopics.isEmpty()) {
-                item { EmptyPanel("暂无待补知识点") }
+                item { EmptyPanel("暂无还没懂的知识") }
             } else {
                 items(nextTopics, key = { "next-${it.id}" }) { topic ->
-                    TopicRow(topic = topic, mastered = false) {
+                    TopicRow(
+                        topic = topic,
+                        mastered = false,
+                        primaryMeta = "建议下一步：先读人话解释，再看例子",
+                        secondaryMeta = topic.schoolPlace(),
+                    ) {
                         onSelect(topic)
                     }
                 }
@@ -555,15 +649,20 @@ private fun ReviewScreen(
 
             item {
                 SectionHeader(
-                    title = "已理解",
+                    title = "已经懂",
                     meta = "${masteredTopics.size} 个知识点",
                 )
             }
             if (masteredTopics.isEmpty()) {
-                item { EmptyPanel("还没有已理解记录") }
+                item { EmptyPanel("还没有已经懂的记录") }
             } else {
                 items(masteredTopics, key = { "review-${it.id}" }) { topic ->
-                    TopicRow(topic = topic, mastered = true) {
+                    TopicRow(
+                        topic = topic,
+                        mastered = true,
+                        primaryMeta = "复习时先问自己：我能用自己的话说出来吗？",
+                        secondaryMeta = topic.schoolPlace(),
+                    ) {
                         onSelect(topic)
                     }
                 }
@@ -626,13 +725,13 @@ private fun ProgressStrip(
                     modifier = Modifier.weight(1f),
                 )
                 MetricBlock(
-                    label = "已理解",
+                    label = "已经懂",
                     value = mastered.toString(),
                     modifier = Modifier.weight(1f),
                     valueColor = MaterialTheme.colorScheme.secondary,
                 )
                 MetricBlock(
-                    label = "待补",
+                    label = "还没懂",
                     value = open.toString(),
                     modifier = Modifier.weight(1f),
                     valueColor = MaterialTheme.colorScheme.tertiary,
@@ -682,6 +781,8 @@ private fun MetricBlock(
 private fun TopicRow(
     topic: Topic,
     mastered: Boolean,
+    primaryMeta: String,
+    secondaryMeta: String,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -709,10 +810,18 @@ private fun TopicRow(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        topic.human.ifBlank { topic.why },
+                        primaryMeta,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        secondaryMeta,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -723,9 +832,9 @@ private fun TopicRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                if (topic.grade.isNotBlank()) SmallTag(topic.grade)
-                SmallTag("${topic.prerequisites.size} 前置")
-                SmallTag("${topic.next.size} 后续")
+                SmallTag(topic.stageLabel())
+                SmallTag("学它之前：${topic.prerequisites.size}个")
+                SmallTag("以后会用：${topic.next.size}个")
             }
         }
     }
@@ -739,7 +848,7 @@ private fun StatusPill(mastered: Boolean) {
         MaterialTheme.colorScheme.tertiaryContainer
     }
     val content = if (mastered) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary
-    val label = if (mastered) "已理解" else "待补"
+    val label = if (mastered) "已经懂" else "还没懂"
 
     Surface(
         shape = PillShape,
@@ -790,6 +899,17 @@ private fun TopicDetail(
             )
         }
         item {
+            DetailPanel(title = "课本里在哪里") {
+                BodyText(topic.schoolPlace())
+            }
+        }
+        item {
+            DetailPanel(title = "两种学法") {
+                RouteLine("跟学校学", topic.schoolRoute.ifEmpty { listOf(topic.schoolPlace()) })
+                RouteLine("按理解补", topic.route.ifEmpty { listOf(topic.human) })
+            }
+        }
+        item {
             LearningMap(
                 topic = topic,
                 topics = topics,
@@ -802,7 +922,7 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "术语") {
+            DetailPanel(title = "这些词先说人话") {
                 if (topic.terms.isEmpty()) {
                     BodyText("暂无")
                 } else {
@@ -815,7 +935,7 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "理解路线") {
+            DetailPanel(title = "从听得懂到正式说法") {
                 if (topic.route.isEmpty()) {
                     BodyText("暂无")
                 } else {
@@ -834,7 +954,7 @@ private fun TopicDetail(
                     onValueChange = { question = it },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
-                    label = { Text("问题") },
+                    label = { Text("哪里没听懂？可以直接问") },
                     enabled = !asking,
                     shape = CardShape,
                 )
@@ -910,7 +1030,7 @@ private fun DetailHeader(
                         lineHeight = 22.sp,
                     )
                 }
-                if (topic.grade.isNotBlank()) SmallTag(topic.grade)
+                SmallTag(topic.stageLabel())
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -919,7 +1039,7 @@ private fun DetailHeader(
             ) {
                 StatusPill(mastered = mastered)
                 Button(onClick = onToggleMastered, shape = CardShape) {
-                    Text(if (mastered) "取消已理解" else "标记已理解")
+                    Text(if (mastered) "我还没懂" else "我懂了")
                 }
             }
         }
@@ -932,10 +1052,21 @@ private fun LearningMap(
     topics: List<Topic>,
     mastered: Set<String>,
 ) {
-    DetailPanel(title = "知识地图") {
-        MapRow("已理解前置", topic.prerequisites.names(topics, onlyMastered = mastered))
-        MapRow("待补前置", topic.prerequisites.names(topics, excludeMastered = mastered))
-        MapRow("后续知识", topic.next.names(topics))
+    DetailPanel(title = "学它前后要知道什么") {
+        MapRow("已经会的旧知识", topic.prerequisites.names(topics, onlyMastered = mastered))
+        MapRow("可能要先补的旧知识", topic.prerequisites.names(topics, excludeMastered = mastered))
+        MapRow("以后会用到它的知识", topic.next.names(topics))
+    }
+}
+
+@Composable
+private fun RouteLine(
+    label: String,
+    steps: List<String>,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        BodyText(steps.joinToString(" -> "))
     }
 }
 
@@ -1133,6 +1264,33 @@ private fun List<String>.names(
     return names.joinToString("、").ifBlank { "暂无" }
 }
 
+private fun Topic.stageLabel(): String = when (gradeBand) {
+    "primary" -> "小学会学"
+    "junior" -> "初中会学"
+    "primary_to_junior" -> "小初衔接会用"
+    else -> gradeBand.ifBlank { "校内知识" }
+}
+
+private fun Topic.schoolPlace(): String {
+    val position = textbookPositions.firstOrNull()
+    if (position != null) {
+        return listOf(position.grade, position.chapter, position.section)
+            .filter { it.isNotBlank() }
+            .joinToString(" · ")
+            .ifBlank { stageLabel() }
+    }
+    return schoolRoute.joinToString(" · ").ifBlank { stageLabel() }
+}
+
+private fun Topic.understandingPreview(): String {
+    val steps = route.take(4)
+    return if (steps.isEmpty()) {
+        "先用人话理解：" + human.ifBlank { name }
+    } else {
+        "按这个顺序想：${steps.joinToString(" -> ")}"
+    }
+}
+
 private suspend fun fetchTopics(): List<Topic> = withContext(Dispatchers.IO) {
     val array = JSONArray(fetch("/topics"))
     List(array.length()) { index -> array.getJSONObject(index).toTopic() }
@@ -1148,14 +1306,29 @@ private suspend fun fetchTeacherAnswer(topicId: String, question: String): Strin
 private fun JSONObject.toTopic(): Topic = Topic(
     id = optString("id"),
     name = optString("name"),
-    grade = optString("grade_band"),
+    gradeBand = optString("grade_band"),
+    textbookPositions = optJSONArray("textbook_positions").toTextbookPositions(),
     human = optString("human_explanation"),
     why = optString("why_needed"),
     prerequisites = optJSONArray("prerequisite_ids").toStringList(),
     next = optJSONArray("next_ids").toStringList(),
     terms = optJSONObject("term_explanations").toStringMap(),
+    schoolRoute = optJSONArray("school_route").toStringList(),
     route = optJSONArray("understanding_route").toStringList(),
 )
+
+private fun JSONArray?.toTextbookPositions(): List<TextbookPosition> {
+    if (this == null) return emptyList()
+    return List(length()) { index ->
+        val item = optJSONObject(index) ?: JSONObject()
+        TextbookPosition(
+            curriculum = item.optString("curriculum"),
+            grade = item.optString("grade"),
+            chapter = item.optString("chapter"),
+            section = item.optString("section"),
+        )
+    }
+}
 
 private fun JSONArray?.toStringList(): List<String> {
     if (this == null) return emptyList()
