@@ -367,7 +367,7 @@ private fun Section(title: String, content: @Composable () -> Unit) {
 private fun AppCard(
     modifier: Modifier = Modifier,
     container: Color = Color.White,
-    content: @Composable Column.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
