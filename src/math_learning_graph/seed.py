@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math_learning_graph.curriculum_seed import load_curriculum_knowledge_points
 from math_learning_graph.models import (
     DomainOverview,
     GradeBand,
@@ -15,10 +16,7 @@ def load_domain_overviews() -> list[DomainOverview]:
         DomainOverview(
             id=MathDomain.NUMBER_OPERATIONS,
             name="数与运算",
-            purpose=(
-                "理解数量、数的表示和数量变化，"
-                "是所有数学学习的底座。"
-            ),
+            purpose=("理解数量、数的表示和数量变化，是所有数学学习的底座。"),
             primary_scope=["整数", "小数", "分数", "四则运算", "运算律"],
             junior_scope=["有理数", "实数", "代数式运算"],
             related_domains=[MathDomain.ALGEBRA_EQUATIONS, MathDomain.STATISTICS_PROBABILITY],
@@ -31,10 +29,7 @@ def load_domain_overviews() -> list[DomainOverview]:
         DomainOverview(
             id=MathDomain.ALGEBRA_EQUATIONS,
             name="代数与方程",
-            purpose=(
-                "把现实数量关系翻译成符号，"
-                "并通过等价变形解决未知量。"
-            ),
+            purpose=("把现实数量关系翻译成符号，并通过等价变形解决未知量。"),
             primary_scope=["等量关系", "用字母表示数", "简易方程"],
             junior_scope=["整式", "一元一次方程", "二元一次方程组", "不等式"],
             related_domains=[MathDomain.NUMBER_OPERATIONS, MathDomain.FUNCTIONS],
@@ -151,10 +146,7 @@ def load_roadmap_items() -> list[RoadmapItem]:
             prerequisite_topic_ids=["equality", "quantity_relationship"],
             next_item_ids=["function_intro_path"],
             is_breakpoint=True,
-            early_intuition=(
-                "未知数是暂时不知道的量，"
-                "解方程是在保持等式不变地把它找出来。"
-            ),
+            early_intuition=("未知数是暂时不知道的量，解方程是在保持等式不变地把它找出来。"),
         ),
         RoadmapItem(
             id="function_intro_path",
@@ -164,10 +156,7 @@ def load_roadmap_items() -> list[RoadmapItem]:
             core_topic_ids=["linear_equation_two_variables", "function_intro"],
             prerequisite_topic_ids=["quantity_relationship", "linear_equation_one_variable"],
             is_breakpoint=True,
-            early_intuition=(
-                "函数先是生活里的变化关系，"
-                "再是表格、图像和表达式。"
-            ),
+            early_intuition=("函数先是生活里的变化关系，再是表格、图像和表达式。"),
         ),
         RoadmapItem(
             id="geometry_measurement",
@@ -191,9 +180,9 @@ def load_roadmap_items() -> list[RoadmapItem]:
 
 
 def load_knowledge_points() -> list[KnowledgePoint]:
-    """Return the MVP knowledge slice used by the in-memory service."""
+    """Return textbook-aligned seed knowledge points used by the in-memory service."""
 
-    return [
+    core_points = [
         KnowledgePoint(
             id="equality",
             name="等式",
@@ -209,9 +198,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             human_explanation="等式就是两边表示同样多，像天平保持平衡。",
             life_examples=["两袋苹果一样重", "5元加3元和8元一样多"],
             why_needed="方程和代数推理都要依赖两边保持相等这个想法。",
-            formal_definition=(
-                "用等号连接、表示左右两个式子值相等的式子叫等式。"
-            ),
+            formal_definition=("用等号连接、表示左右两个式子值相等的式子叫等式。"),
             term_explanations={
                 "等号": "表示左右两边一样多的符号。",
                 "式子": "由数、符号或字母组成的一段数学表达。",
@@ -235,16 +222,10 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                     section="加减乘除",
                 )
             ],
-            human_explanation=(
-                "四则运算是把数量合起来、"
-                "拿走、成组增加或平均分。"
-            ),
+            human_explanation=("四则运算是把数量合起来、拿走、成组增加或平均分。"),
             life_examples=["买东西合计价格", "把糖果平均分给朋友"],
             why_needed="后续分数、方程、函数都要把数量关系写成运算。",
-            formal_definition=(
-                "加法、减法、乘法、除法及其运算规则"
-                "共同构成四则运算。"
-            ),
+            formal_definition=("加法、减法、乘法、除法及其运算规则共同构成四则运算。"),
             term_explanations={
                 "运算": "对数量做动作，比如合起来、拿走、成组或平均分。",
                 "规则": "大家约定好的计算办法。",
@@ -268,10 +249,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                     section="乘法分配律",
                 )
             ],
-            human_explanation=(
-                "分配律说明先拆开再分别乘，"
-                "和先合起来再乘一样。"
-            ),
+            human_explanation=("分配律说明先拆开再分别乘，和先合起来再乘一样。"),
             life_examples=["3盒彩笔和2盒彩笔，每盒12支，一共还是5盒12支"],
             why_needed="化简式子、解方程和理解面积公式都常用它。",
             formal_definition="a x (b + c) = a x b + a x c。",
@@ -303,14 +281,8 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             ],
             human_explanation="分数表示把一个整体平均分后取其中几份。",
             life_examples=["半块蛋糕", "四分之三杯水"],
-            why_needed=(
-                "比例、百分数、概率和代数式"
-                "都需要表达不是整数的量。"
-            ),
-            formal_definition=(
-                "形如 a/b 的数表示把单位1平均分成b份后取a份，"
-                "b不为0。"
-            ),
+            why_needed=("比例、百分数、概率和代数式都需要表达不是整数的量。"),
+            formal_definition=("形如 a/b 的数表示把单位1平均分成b份后取a份，b不为0。"),
             term_explanations={
                 "单位1": "这次被当作一个完整整体的东西。",
                 "平均分": "每一份大小一样。",
@@ -343,8 +315,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             life_examples=["路程会随着时间增加", "总价会随着数量增加"],
             why_needed="函数、方程和应用题建模都从发现数量关系开始。",
             formal_definition=(
-                "数量关系是变量或已知量之间可用语言、"
-                "表格、图像或式子描述的对应规则。"
+                "数量关系是变量或已知量之间可用语言、表格、图像或式子描述的对应规则。"
             ),
             term_explanations={
                 "数量": "可以数出来或量出来的多少。",
@@ -372,19 +343,10 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                     section="解一元一次方程",
                 )
             ],
-            human_explanation=(
-                "移项不是把数随便搬家，"
-                "而是在等式两边做同样操作后的简写。"
-            ),
+            human_explanation=("移项不是把数随便搬家，而是在等式两边做同样操作后的简写。"),
             life_examples=["天平两边同时拿走同样重的砝码"],
-            why_needed=(
-                "解方程时要把含未知数的项和常数项"
-                "整理到合适的位置。"
-            ),
-            formal_definition=(
-                "等式中某一项从一边移到另一边并改变符号，"
-                "是等式同解变形的简写。"
-            ),
+            why_needed=("解方程时要把含未知数的项和常数项整理到合适的位置。"),
+            formal_definition=("等式中某一项从一边移到另一边并改变符号，是等式同解变形的简写。"),
             term_explanations={
                 "项": "式子里用加号或减号分开的每一块。",
                 "变号": "加变成减，或减变成加。",
@@ -420,14 +382,12 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                 )
             ],
             human_explanation=(
-                "一元一次方程就是只有一个未知数，"
-                "而且未知数只出现一次方的等量关系。"
+                "一元一次方程就是只有一个未知数，而且未知数只出现一次方的等量关系。"
             ),
             life_examples=["已知总价和单价，求买了多少件"],
             why_needed="它是从算术问题进入代数建模的第一道门。",
             formal_definition=(
-                "只含一个未知数，未知数次数为1，"
-                "且可化为 ax + b = 0 的整式方程叫一元一次方程。"
+                "只含一个未知数，未知数次数为1，且可化为 ax + b = 0 的整式方程叫一元一次方程。"
             ),
             term_explanations={
                 "未知数": "现在不知道、需要求出来的数。",
@@ -449,9 +409,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             next_ids=["linear_equation_two_variables", "function_intro"],
             formulas=["ax + b = 0"],
             visualization_methods=["天平模型", "线段图", "步骤树"],
-            ai_teaching_hints=[
-                "先让学生说出未知量，再把数量关系翻译成等式。"
-            ],
+            ai_teaching_hints=["先让学生说出未知量，再把数量关系翻译成等式。"],
             exercise_types=["列方程", "解方程", "检验解"],
             school_route=["初中", "方程", "一元一次方程"],
             understanding_route=["未知数", "等量关系", "列式", "等式变形", "求解"],
@@ -468,16 +426,10 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                     section="二元一次方程",
                 )
             ],
-            human_explanation=(
-                "二元一次方程表示两个未知量之间"
-                "的一条一次关系。"
-            ),
+            human_explanation=("二元一次方程表示两个未知量之间的一条一次关系。"),
             life_examples=["鸡兔同笼中鸡和兔的数量关系"],
             why_needed="它连接方程组、坐标图像和一次函数。",
-            formal_definition=(
-                "含有两个未知数，且含未知数的项次数都是1"
-                "的整式方程叫二元一次方程。"
-            ),
+            formal_definition=("含有两个未知数，且含未知数的项次数都是1的整式方程叫二元一次方程。"),
             term_explanations={
                 "二元": "有两个未知数。",
                 "解": "能让方程成立的未知数取值。",
@@ -510,10 +462,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             ],
             human_explanation="函数是在描述一个量变了，另一个量怎样跟着变。",
             life_examples=["打车费用随里程变化", "水位随放水时间变化"],
-            why_needed=(
-                "函数把变化关系变成可以预测、"
-                "画图和推理的数学对象。"
-            ),
+            why_needed=("函数把变化关系变成可以预测、画图和推理的数学对象。"),
             formal_definition=(
                 "在某个变化过程中，如果对于变量x的每一个确定值，"
                 "变量y都有唯一确定的值与它对应，那么y是x的函数。"
@@ -525,9 +474,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                 "对应": "一个东西配到另一个东西。",
                 "唯一": "只有一个，不会同时出现两个不同结果。",
             },
-            misconceptions=[
-                "一上来背定义，不知道输入输出和唯一对应是什么意思。"
-            ],
+            misconceptions=["一上来背定义，不知道输入输出和唯一对应是什么意思。"],
             prerequisite_ids=[
                 "quantity_relationship",
                 "linear_equation_one_variable",
@@ -535,9 +482,7 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             ],
             formulas=["y = f(x)", "y = kx + b"],
             visualization_methods=["输入输出机器", "表格", "坐标图像", "变化故事"],
-            ai_teaching_hints=[
-                "按生活变化、两个量、输入输出、表格、图像、表达式讲。"
-            ],
+            ai_teaching_hints=["按生活变化、两个量、输入输出、表格、图像、表达式讲。"],
             exercise_types=["判断函数关系", "表格补全", "读图像", "写表达式"],
             school_route=["初中", "函数", "函数的概念"],
             understanding_route=[
@@ -551,6 +496,8 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             ],
         ),
     ]
+
+    return [*core_points, *load_curriculum_knowledge_points()]
 
 
 def load_seed_knowledge_points() -> list[KnowledgePoint]:

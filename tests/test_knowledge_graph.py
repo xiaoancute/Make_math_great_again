@@ -37,3 +37,14 @@ def test_missing_prerequisite_reference_is_rejected():
 
     with pytest.raises(ValueError, match="missing_topic"):
         KnowledgeGraph.from_points([broken, *points[1:]])
+
+
+def test_seed_includes_textbook_aligned_primary_and_junior_topics():
+    points = load_seed_knowledge_points()
+    by_id = {point.id: point for point in points}
+
+    assert len(points) >= 60
+    assert by_id["number_recognition"].textbook_positions[0].grade == "一年级上册"
+    assert by_id["rational_numbers"].textbook_positions[0].chapter == "第一章 有理数"
+    assert by_id["quadratic_function"].textbook_positions[0].grade == "九年级上册"
+    assert by_id["trigonometric_ratios"].textbook_positions[0].chapter == "第二十八章 锐角三角函数"
