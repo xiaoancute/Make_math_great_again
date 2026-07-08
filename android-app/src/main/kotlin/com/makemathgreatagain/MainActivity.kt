@@ -119,10 +119,16 @@ private data class Topic(
     val gradeBand: String,
     val textbookPositions: List<TextbookPosition>,
     val human: String,
+    val lifeExamples: List<String>,
     val why: String,
+    val formalDefinition: String,
     val prerequisites: List<String>,
     val next: List<String>,
     val terms: Map<String, String>,
+    val misconceptions: List<String>,
+    val formulas: List<String>,
+    val visuals: List<String>,
+    val exerciseTypes: List<String>,
     val schoolRoute: List<String>,
     val route: List<String>,
 )
@@ -1069,9 +1075,16 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "两种学法") {
-                RouteLine("跟学校学", topic.schoolRoute.ifEmpty { listOf(topic.schoolPlace()) })
-                RouteLine("按理解补", topic.route.ifEmpty { listOf(topic.human) })
+            DetailPanel(title = "先把它说清楚") {
+                BodyText(topic.human.ifBlank { "暂无" })
+            }
+        }
+        item {
+            DetailPanel(title = "理解层次") {
+                BodyText(
+                    "先知道它在解决什么问题，再看例子，最后才看正式说法。"
+                        + "如果前面没懂，后面的符号只是看起来会了。",
+                )
             }
         }
         item {
@@ -1084,6 +1097,11 @@ private fun TopicDetail(
         item {
             DetailPanel(title = "为什么需要") {
                 BodyText(topic.why.ifBlank { "暂无" })
+            }
+        }
+        item {
+            DetailPanel(title = "生活里怎么见到它") {
+                BulletList(topic.lifeExamples, emptyText = "暂无生活例子")
             }
         }
         item {
@@ -1100,7 +1118,7 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "从听得懂到正式说法") {
+            DetailPanel(title = "一步一步理解") {
                 if (topic.route.isEmpty()) {
                     BodyText("暂无")
                 } else {
@@ -1110,6 +1128,26 @@ private fun TopicDetail(
                         }
                     }
                 }
+            }
+        }
+        item {
+            DetailPanel(title = "正式说法") {
+                BodyText(topic.formalDefinition.ifBlank { topic.human.ifBlank { "暂无" } })
+                if (topic.formulas.isNotEmpty()) {
+                    Spacer(Modifier.height(2.dp))
+                    LabelValueList("常见写法", topic.formulas)
+                }
+            }
+        }
+        item {
+            DetailPanel(title = "容易误会的地方") {
+                BulletList(topic.misconceptions.ifEmpty { topic.defaultMisconceptions() })
+            }
+        }
+        item {
+            DetailPanel(title = "怎么判断自己真懂了") {
+                LabelValueList("可以这样练", topic.exerciseTypes.ifEmpty { topic.defaultPractice() })
+                LabelValueList("可以这样画", topic.visuals)
             }
         }
         item {
@@ -1266,6 +1304,46 @@ private fun MapRow(label: String, value: String) {
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, fontSize = 15.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun LabelValueList(
+    label: String,
+    values: List<String>,
+) {
+    if (values.isEmpty()) return
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        BulletList(values)
+    }
+}
+
+@Composable
+private fun BulletList(
+    values: List<String>,
+    emptyText: String = "暂无",
+) {
+    if (values.isEmpty()) {
+        BodyText(emptyText)
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        values.forEach { value ->
+            BulletItem(value)
+        }
+    }
+}
+
+@Composable
+private fun BulletItem(value: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text("•", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp)
+        BodyText(value, modifier = Modifier.weight(1f))
     }
 }
 
@@ -1456,6 +1534,17 @@ private fun Topic.understandingPreview(): String {
     }
 }
 
+private fun Topic.defaultMisconceptions(): List<String> = listOf(
+    "只记住一句话或公式，但说不出它在解决什么问题。",
+    "能做熟题，换一种问法就不知道该用它。",
+)
+
+private fun Topic.defaultPractice(): List<String> = listOf(
+    "不用术语，先把它用自己的话讲一遍。",
+    "举一个生活例子，再指出这个例子里每个量是什么意思。",
+    "看一道题时先说：已知什么、要找什么、这里为什么能用它。",
+)
+
 private fun List<Topic>.schoolOrdered(): List<Topic> = mapIndexed { index, topic -> index to topic }
     .sortedWith(
         compareBy<Pair<Int, Topic>> { it.second.textbookPositions.firstOrNull()?.grade.gradeOrder() }
@@ -1601,10 +1690,16 @@ private fun JSONObject.toTopic(): Topic = Topic(
     gradeBand = optString("grade_band"),
     textbookPositions = optJSONArray("textbook_positions").toTextbookPositions(),
     human = optString("human_explanation"),
+    lifeExamples = optJSONArray("life_examples").toStringList(),
     why = optString("why_needed"),
+    formalDefinition = optString("formal_definition"),
     prerequisites = optJSONArray("prerequisite_ids").toStringList(),
     next = optJSONArray("next_ids").toStringList(),
     terms = optJSONObject("term_explanations").toStringMap(),
+    misconceptions = optJSONArray("misconceptions").toStringList(),
+    formulas = optJSONArray("formulas").toStringList(),
+    visuals = optJSONArray("visualization_methods").toStringList(),
+    exerciseTypes = optJSONArray("exercise_types").toStringList(),
     schoolRoute = optJSONArray("school_route").toStringList(),
     route = optJSONArray("understanding_route").toStringList(),
 )

@@ -3,6 +3,11 @@ from __future__ import annotations
 from math_learning_graph.models import KnowledgePoint
 
 
+def _join_or_default(values: list[str], default: str) -> str:
+    text = "；".join(value for value in values if value)
+    return text or default
+
+
 def build_teacher_prompt(point: KnowledgePoint, student_age: int, question: str) -> str:
     route = " -> ".join(point.understanding_route)
     examples = "；".join(point.life_examples)
@@ -30,7 +35,7 @@ def build_teacher_prompt(point: KnowledgePoint, student_age: int, question: str)
 8. 学生困惑时，先问“你卡在哪个词，还是卡在哪一步？”，再继续讲。
 
 推荐理解路线：{route}
-一句话人话解释：{point.human_explanation}
+入口解释：{point.human_explanation}
 生活例子：{examples}
 为什么需要：{point.why_needed}
 正式定义：{point.formal_definition}
@@ -46,22 +51,33 @@ def build_teacher_answer(point: KnowledgePoint, student_age: int, question: str)
         f"- {term}：{explanation}"
         for term, explanation in point.term_explanations.items()
     )
-    examples = "；".join(point.life_examples)
+    examples = _join_or_default(point.life_examples, "先自己举一个能数、能分、能比较的例子。")
+    misconceptions = _join_or_default(
+        point.misconceptions,
+        "只记住一句话或公式，但说不出它在解决什么问题。",
+    )
+    visuals = _join_or_default(point.visualization_methods, "先画图、列表或用实物摆出来。")
 
     return f"""你问的是：{question}
 
 先用人话说：{point.human_explanation}
 
-为什么要学它：{point.why_needed}
+它不是一句话能背完的。拆开看：
+1. 它在解决什么问题：{point.why_needed}
+2. 可以先这样想：{route}
+3. 能画出来就画：{visuals}
 
-先别急着背定义。你可以按这条路理解：
-{route}
-
-这里容易卡住的词：
+这里容易卡住的词，先别跳过：
 {terms}
 
 生活里的例子：{examples}
 
+正式说法最后再看：{point.formal_definition}
+
+常见误会：{misconceptions}
+
 给{student_age}岁学生的小问题：
-你现在卡住的是哪个词，还是哪一步？
+1. 你能不用术语，把它讲给别人听吗？
+2. 你能举一个自己的例子吗？
+3. 你现在卡住的是哪个词，还是哪一步？
 先把卡住的地方说出来，再继续往下学。"""

@@ -30,6 +30,11 @@ def test_teacher_answer_is_student_facing_and_explains_terms():
     answer = build_teacher_answer(point, student_age=12, question="函数为什么要存在？")
 
     assert "先用人话说" in answer
+    assert "不是一句话能背完" in answer
+    assert "它在解决什么问题" in answer
+    assert "正式说法最后再看" in answer
+    assert "常见误会" in answer
+    assert "你能不用术语" in answer
     assert "变量" in answer
     assert "输入" in answer
     assert "你现在卡住的是哪个词" in answer
