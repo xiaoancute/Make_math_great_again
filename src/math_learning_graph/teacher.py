@@ -60,24 +60,22 @@ def build_teacher_answer(point: KnowledgePoint, student_age: int, question: str)
 
     return f"""你问的是：{question}
 
-先用人话说：{point.human_explanation}
+{point.name}可以先这样理解：{point.human_explanation}
 
-它不是一句话能背完的。拆开看：
-1. 它在解决什么问题：{point.why_needed}
-2. 可以先这样想：{route}
-3. 能画出来就画：{visuals}
+它要解决的问题是：{point.why_needed}
 
-这里容易卡住的词，先别跳过：
+可以按这个顺序学：{route}。如果觉得抽象，可以先用这些方式表示出来：{visuals}
+
+关键词：
 {terms}
 
-生活里的例子：{examples}
+例子：{examples}
 
-正式说法最后再看：{point.formal_definition}
+课本里的正式说法：{point.formal_definition}
 
 常见误会：{misconceptions}
 
-给{student_age}岁学生的小问题：
-1. 你能不用术语，把它讲给别人听吗？
-2. 你能举一个自己的例子吗？
-3. 你现在卡住的是哪个词，还是哪一步？
-先把卡住的地方说出来，再继续往下学。"""
+你可以用这三个问题检查自己是否真的懂了：
+1. 我能不能用自己的话说明它表示什么？
+2. 我能不能举一个自己的例子？
+3. 我能不能说出这道题为什么要用它？"""

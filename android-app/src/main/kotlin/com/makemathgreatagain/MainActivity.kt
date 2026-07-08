@@ -1075,37 +1075,12 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "先把它说清楚") {
-                BodyText(topic.human.ifBlank { "暂无" })
+            DetailPanel(title = "讲解") {
+                ExplanationText(topic.explanationText())
             }
         }
         item {
-            DetailPanel(title = "理解层次") {
-                BodyText(
-                    "先知道它在解决什么问题，再看例子，最后才看正式说法。"
-                        + "如果前面没懂，后面的符号只是看起来会了。",
-                )
-            }
-        }
-        item {
-            LearningMap(
-                topic = topic,
-                topics = topics,
-                mastered = mastered,
-            )
-        }
-        item {
-            DetailPanel(title = "为什么需要") {
-                BodyText(topic.why.ifBlank { "暂无" })
-            }
-        }
-        item {
-            DetailPanel(title = "生活里怎么见到它") {
-                BulletList(topic.lifeExamples, emptyText = "暂无生活例子")
-            }
-        }
-        item {
-            DetailPanel(title = "这些词先说人话") {
+            DetailPanel(title = "关键词") {
                 if (topic.terms.isEmpty()) {
                     BodyText("暂无")
                 } else {
@@ -1118,36 +1093,19 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "一步一步理解") {
-                if (topic.route.isEmpty()) {
-                    BodyText("暂无")
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        topic.route.forEachIndexed { index, value ->
-                            RouteStep(index = index + 1, value = value)
-                        }
-                    }
+            LearningMap(
+                topic = topic,
+                topics = topics,
+                mastered = mastered,
+            )
+        }
+        item {
+            DetailPanel(title = "误区与练习") {
+                DenseTextBlock("容易错在", topic.misconceptions.ifEmpty { topic.defaultMisconceptions() })
+                DenseTextBlock("练习方式", topic.exerciseTypes.ifEmpty { topic.defaultPractice() })
+                if (topic.visuals.isNotEmpty()) {
+                    DenseTextBlock("辅助表示", topic.visuals)
                 }
-            }
-        }
-        item {
-            DetailPanel(title = "正式说法") {
-                BodyText(topic.formalDefinition.ifBlank { topic.human.ifBlank { "暂无" } })
-                if (topic.formulas.isNotEmpty()) {
-                    Spacer(Modifier.height(2.dp))
-                    LabelValueList("常见写法", topic.formulas)
-                }
-            }
-        }
-        item {
-            DetailPanel(title = "容易误会的地方") {
-                BulletList(topic.misconceptions.ifEmpty { topic.defaultMisconceptions() })
-            }
-        }
-        item {
-            DetailPanel(title = "怎么判断自己真懂了") {
-                LabelValueList("可以这样练", topic.exerciseTypes.ifEmpty { topic.defaultPractice() })
-                LabelValueList("可以这样画", topic.visuals)
             }
         }
         item {
@@ -1308,43 +1266,21 @@ private fun MapRow(label: String, value: String) {
 }
 
 @Composable
-private fun LabelValueList(
+private fun DenseTextBlock(
     label: String,
     values: List<String>,
 ) {
     if (values.isEmpty()) return
 
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        BulletList(values)
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(label, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        BodyText(values.joinToString("；") + "。")
     }
 }
 
 @Composable
-private fun BulletList(
-    values: List<String>,
-    emptyText: String = "暂无",
-) {
-    if (values.isEmpty()) {
-        BodyText(emptyText)
-        return
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        values.forEach { value ->
-            BulletItem(value)
-        }
-    }
-}
-
-@Composable
-private fun BulletItem(value: String) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text("•", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp)
-        BodyText(value, modifier = Modifier.weight(1f))
-    }
+private fun ExplanationText(value: String) {
+    BodyText(value)
 }
 
 @Composable
@@ -1534,15 +1470,39 @@ private fun Topic.understandingPreview(): String {
     }
 }
 
+private fun Topic.explanationText(): String {
+    val paragraphs = mutableListOf<String>()
+    if (human.isNotBlank()) {
+        paragraphs += human
+    }
+    if (why.isNotBlank()) {
+        paragraphs += why
+    }
+    if (lifeExamples.isNotEmpty()) {
+        paragraphs += "可以把它放到这些场景里看：${lifeExamples.joinToString("、")}。"
+    }
+    if (route.isNotEmpty()) {
+        paragraphs += "理解顺序是：${route.joinToString("，然后")}。"
+    }
+    val definition = formalDefinition.ifBlank { human }
+    if (definition.isNotBlank() && definition != human) {
+        paragraphs += "课本里的正式说法是：$definition"
+    }
+    if (formulas.isNotEmpty()) {
+        paragraphs += "常见写法：${formulas.joinToString("，")}。"
+    }
+    return paragraphs.joinToString("\n\n").ifBlank { "暂无讲解" }
+}
+
 private fun Topic.defaultMisconceptions(): List<String> = listOf(
-    "只记住一句话或公式，但说不出它在解决什么问题。",
-    "能做熟题，换一种问法就不知道该用它。",
+    "只记住说法或公式，但说不出它表示什么。",
+    "能做熟题，换一种问法就不知道该怎样判断。",
 )
 
 private fun Topic.defaultPractice(): List<String> = listOf(
-    "不用术语，先把它用自己的话讲一遍。",
-    "举一个生活例子，再指出这个例子里每个量是什么意思。",
-    "看一道题时先说：已知什么、要找什么、这里为什么能用它。",
+    "用自己的话讲一遍这个知识点。",
+    "举一个例子，并说清楚例子里的数量或图形关系。",
+    "做题前先说清楚已知什么、要求什么、该用哪个关系。",
 )
 
 private fun List<Topic>.schoolOrdered(): List<Topic> = mapIndexed { index, topic -> index to topic }
