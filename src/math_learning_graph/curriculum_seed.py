@@ -1017,7 +1017,10 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             section="近似数和估算",
             human="估算是先得到一个接近真实结果、方便判断的数。",
             why="学生做应用题和复杂计算时，需要先判断答案是否合理。",
-            terms={"近似数": "接近准确值、方便使用的数。", "四舍五入": "按后一位决定保留位是否进一。"},
+            terms={
+                "近似数": "接近准确值、方便使用的数。",
+                "四舍五入": "按后一位决定保留位是否进一。",
+            },
             prerequisites=["place_value_decimal_system", "number_comparison"],
             next_topics=["decimal_operations", "data_analysis"],
             examples=["估一下一箱书大约多重", "判断计算结果是不是离谱"],
@@ -1049,7 +1052,10 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             section="笔算乘除法",
             human="整数乘除法是在更大的数里处理相同组和平均分。",
             why="面积、体积、比例、速度和代数计算都离不开整数乘除。",
-            terms={"笔算": "按数位一步一步写下来的计算。", "余数": "平均分后剩下不够再分的一部分。"},
+            terms={
+                "笔算": "按数位一步一步写下来的计算。",
+                "余数": "平均分后剩下不够再分的一部分。",
+            },
             prerequisites=[
                 "place_value_decimal_system",
                 "multiplication_table",
@@ -1085,7 +1091,10 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             section="长度、质量、时间、面积和体积单位换算",
             human="单位换算是在用不同单位说同一个量。",
             why="不懂单位，应用题、面积体积和速度问题都会看错数量。",
-            terms={"单位进率": "两个单位之间相差多少倍。", "同一个量": "东西没有变，只是说法变了。"},
+            terms={
+                "单位进率": "两个单位之间相差多少倍。",
+                "同一个量": "东西没有变，只是说法变了。",
+            },
             prerequisites=["measurement_units", "place_value_decimal_system"],
             next_topics=["area", "volume", "rate_speed_distance"],
             examples=["1米等于100厘米", "1平方米等于10000平方厘米"],
