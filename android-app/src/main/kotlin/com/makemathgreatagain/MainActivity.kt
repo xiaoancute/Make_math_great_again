@@ -1,10 +1,12 @@
 package com.makemathgreatagain
 
-import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,33 +17,44 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +66,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -65,8 +79,22 @@ private const val PREFS = "math_learning"
 private const val MASTERED_TOPICS = "mastered_topics"
 private const val API_BASE_URL = "http://10.0.2.2:8000"
 
+private val MmgaColors = lightColorScheme(
+    primary = Color(0xFF1D4ED8),
+    onPrimary = Color.White,
+    secondary = Color(0xFF047A72),
+    tertiary = Color(0xFFB45309),
+    background = Color(0xFFF6F7FB),
+    surface = Color.White,
+    surfaceVariant = Color(0xFFE8ECF4),
+    onSurface = Color(0xFF172033),
+    onSurfaceVariant = Color(0xFF596277),
+    error = Color(0xFFB42318),
+)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent { MmgaApp() }
     }
@@ -93,33 +121,43 @@ private data class UiState(
     val answer: String = "",
 )
 
+private enum class TopicFilter(val label: String) {
+    All("全部"),
+    Open("待补"),
+    Mastered("已理解"),
+}
+
 @Composable
 private fun MmgaApp() {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf(UiState(mastered = loadMastered(context))) }
 
-    LaunchedEffect(Unit) {
+    suspend fun loadTopics() {
+        val selectedId = state.selected?.id
+        state = state.copy(loading = true, error = null)
         state = try {
-            state.copy(loading = false, topics = fetchTopics(), error = null)
+            val topics = fetchTopics()
+            state.copy(
+                loading = false,
+                topics = topics,
+                selected = selectedId?.let { id -> topics.firstOrNull { it.id == id } },
+                error = null,
+            )
         } catch (error: Exception) {
             state.copy(loading = false, error = error.message ?: "Request failed")
         }
     }
 
-    MaterialTheme(
-        colorScheme = MaterialTheme.colorScheme.copy(
-            primary = Color(0xFF2563EB),
-            surface = Color.White,
-            background = Color(0xFFF7F8FA),
-        )
-    ) {
+    LaunchedEffect(Unit) {
+        loadTopics()
+    }
+
+    MaterialTheme(colorScheme = MmgaColors) {
         Surface(color = MaterialTheme.colorScheme.background) {
             AppScreen(
                 state = state,
-                onReload = {
-                    state = state.copy(loading = true, error = null, selected = null)
-                    (context as Activity).recreate()
-                },
+                onReload = { scope.launch { loadTopics() } },
                 onSelect = { state = state.copy(selected = it, answer = "") },
                 onBack = { state = state.copy(selected = null, answer = "") },
                 onToggleMastered = { topic ->
@@ -135,7 +173,7 @@ private fun MmgaApp() {
                     } catch (_: Exception) {
                         state.copy(answer = "请求失败")
                     }
-                }
+                },
             )
         }
     }
@@ -151,28 +189,38 @@ private fun AppScreen(
     onToggleMastered: (Topic) -> Unit,
     onAsk: suspend (Topic, String) -> Unit,
 ) {
+    BackHandler(enabled = state.selected != null, onBack = onBack)
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             TopAppBar(
                 title = { Text("MMGA", fontWeight = FontWeight.SemiBold) },
+                navigationIcon = {
+                    if (state.selected != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "返回")
+                        }
+                    }
+                },
                 actions = {
-                    if (state.selected == null) {
-                        TextButton(onClick = onReload) { Text("刷新") }
-                    } else {
-                        TextButton(onClick = onBack) { Text("返回") }
+                    IconButton(onClick = onReload, enabled = !state.loading) {
+                        Icon(Icons.Filled.Refresh, contentDescription = "刷新")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                ),
             )
-        }
+        },
     ) { padding ->
         if (state.selected == null) {
             TopicList(
                 state = state,
+                onReload = onReload,
                 onSelect = onSelect,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier.padding(padding),
             )
         } else {
             TopicDetail(
@@ -182,35 +230,92 @@ private fun AppScreen(
                 answer = state.answer,
                 onToggleMastered = onToggleMastered,
                 onAsk = onAsk,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier.padding(padding),
             )
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TopicList(
     state: UiState,
+    onReload: () -> Unit,
     onSelect: (Topic) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var filter by rememberSaveable { mutableStateOf(TopicFilter.All) }
+    val filteredTopics = state.topics.filter { topic ->
+        val matchesQuery = query.trim().isBlank() ||
+            listOf(topic.name, topic.grade, topic.human).any {
+                it.contains(query.trim(), ignoreCase = true)
+            }
+        val matchesFilter = when (filter) {
+            TopicFilter.All -> true
+            TopicFilter.Open -> topic.id !in state.mastered
+            TopicFilter.Mastered -> topic.id in state.mastered
+        }
+        matchesQuery && matchesFilter
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            SummaryCard(
-                loading = state.loading,
-                error = state.error,
+            ProgressStrip(
                 total = state.topics.size,
                 mastered = state.mastered.size,
+                loading = state.loading,
             )
         }
-        items(state.topics) { topic ->
-            TopicCard(topic = topic, mastered = topic.id in state.mastered) {
-                onSelect(topic)
+        item {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("搜索知识点") },
+                leadingIcon = {
+                    Icon(Icons.Filled.Search, contentDescription = null)
+                },
+            )
+        }
+        item {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                TopicFilter.entries.forEach { option ->
+                    FilterChip(
+                        selected = filter == option,
+                        onClick = { filter = option },
+                        label = { Text(option.label) },
+                    )
+                }
+            }
+        }
+        if (state.error != null) {
+            item {
+                ErrorPanel(message = state.error, onReload = onReload)
+            }
+        }
+        if (state.loading && state.topics.isEmpty()) {
+            items(4) {
+                LoadingTopicRow()
+            }
+        } else if (filteredTopics.isEmpty()) {
+            item {
+                EmptyPanel()
+            }
+        } else {
+            items(filteredTopics, key = { it.id }) { topic ->
+                TopicRow(topic = topic, mastered = topic.id in state.mastered) {
+                    onSelect(topic)
+                }
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
@@ -218,48 +323,131 @@ private fun TopicList(
 }
 
 @Composable
-private fun SummaryCard(
-    loading: Boolean,
-    error: String?,
+private fun ProgressStrip(
     total: Int,
     mastered: Int,
+    loading: Boolean,
 ) {
-    AppCard(container = Color(0xFFEAF2FF)) {
-        Text("知识点", fontSize = 14.sp, color = Color(0xFF2563EB))
-        Text(
-            if (loading) "加载中" else "$total 个 · $mastered 个已理解",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        MetricPill(
+            label = if (loading) "同步中" else "全部",
+            value = total.toString(),
+            container = Color(0xFFEAF2FF),
+            content = Color(0xFF1D4ED8),
+            modifier = Modifier.weight(1f),
         )
-        if (error != null) {
-            Text(error, color = Color(0xFFB42318), fontSize = 14.sp)
+        MetricPill(
+            label = "已理解",
+            value = mastered.toString(),
+            container = Color(0xFFE7F8EF),
+            content = Color(0xFF047A72),
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun MetricPill(
+    label: String,
+    value: String,
+    container: Color,
+    content: Color,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.height(72.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = container,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(label, color = content, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(value, color = Color(0xFF172033), fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TopicCard(
+private fun TopicRow(
     topic: Topic,
     mastered: Boolean,
     onClick: () -> Unit,
 ) {
-    AppCard(modifier = Modifier.clickable(onClick = onClick)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(topic.name, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-                Text(
-                    topic.human,
-                    color = Color(0xFF5B6472),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        topic.name.ifBlank { topic.id },
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        topic.human.ifBlank { topic.why },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                StatusPill(mastered = mastered)
             }
-            StatusDot(active = mastered)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                if (topic.grade.isNotBlank()) SmallTag(topic.grade)
+                SmallTag("${topic.prerequisites.size} 前置")
+                SmallTag("${topic.next.size} 后续")
+            }
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (topic.grade.isNotBlank()) Chip(topic.grade)
-            if (mastered) Chip("已理解")
+    }
+}
+
+@Composable
+private fun StatusPill(mastered: Boolean) {
+    val container = if (mastered) Color(0xFFE7F8EF) else Color(0xFFFFF7E6)
+    val content = if (mastered) Color(0xFF047A72) else Color(0xFFB45309)
+    val label = if (mastered) "已理解" else "待补"
+
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = container,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(content),
+            )
+            Text(label, color = content, fontSize = 12.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -275,71 +463,101 @@ private fun TopicDetail(
     onAsk: suspend (Topic, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var question by remember(topic.id) { mutableStateOf("") }
-    var asking by remember { mutableStateOf(false) }
+    var question by rememberSaveable(topic.id) { mutableStateOf("") }
+    var asking by remember(topic.id) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            AppCard(container = Color(0xFFEAF2FF)) {
-                Text(topic.name, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text(topic.human, color = Color(0xFF435064))
-                Button(onClick = { onToggleMastered(topic) }) {
-                    Text(if (topic.id in mastered) "取消已理解" else "标记为已理解")
+            DetailHeader(
+                topic = topic,
+                mastered = topic.id in mastered,
+                onToggleMastered = { onToggleMastered(topic) },
+            )
+        }
+        item {
+            LearningMap(
+                topic = topic,
+                topics = topics,
+                mastered = mastered,
+            )
+        }
+        item {
+            DetailPanel(title = "为什么需要") {
+                BodyText(topic.why.ifBlank { "暂无" })
+            }
+        }
+        item {
+            DetailPanel(title = "术语") {
+                if (topic.terms.isEmpty()) {
+                    BodyText("暂无")
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        topic.terms.entries.forEach { entry ->
+                            TermRow(term = entry.key, explanation = entry.value)
+                        }
+                    }
                 }
             }
         }
         item {
-            Section("知识地图") {
-                Text("已理解前置：${topic.prerequisites.names(topics, mastered)}")
-                Text("待补前置：${topic.prerequisites.names(topics, null, mastered)}")
-                Text("后续知识：${topic.next.names(topics)}")
+            DetailPanel(title = "理解路线") {
+                if (topic.route.isEmpty()) {
+                    BodyText("暂无")
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        topic.route.forEachIndexed { index, value ->
+                            RouteStep(index = index + 1, value = value)
+                        }
+                    }
+                }
             }
         }
-        item { TextSection("为什么需要", topic.why) }
         item {
-            TextSection(
-                "术语",
-                topic.terms.entries.joinToString("\n") { "${it.key}：${it.value}" }
-            )
-        }
-        item {
-            TextSection(
-                "理解路线",
-                topic.route.mapIndexed { i, value -> "${i + 1}. $value" }.joinToString("\n")
-            )
-        }
-        item {
-            Section("提问") {
+            DetailPanel(title = "提问") {
                 OutlinedTextField(
                     value = question,
                     onValueChange = { question = it },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                    label = { Text("问题") }
+                    minLines = 3,
+                    label = { Text("问题") },
+                    enabled = !asking,
                 )
-                Spacer(Modifier.height(10.dp))
-                Button(
-                    onClick = {
-                        asking = true
-                    },
-                    enabled = question.isNotBlank()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
                 ) {
-                    Text("发送")
-                }
-                if (asking) {
-                    LaunchedEffect(question, topic.id) {
-                        onAsk(topic, question)
-                        asking = false
+                    Button(
+                        onClick = {
+                            val submitted = question.trim()
+                            if (submitted.isNotEmpty()) {
+                                scope.launch {
+                                    asking = true
+                                    onAsk(topic, submitted)
+                                    asking = false
+                                }
+                            }
+                        },
+                        enabled = question.isNotBlank() && !asking,
+                    ) {
+                        if (asking) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text("发送")
                     }
                 }
                 if (answer.isNotBlank()) {
-                    Spacer(Modifier.height(12.dp))
-                    Text(answer, color = Color(0xFF27313F))
+                    AnswerBubble(answer = answer)
                 }
             }
         }
@@ -348,53 +566,230 @@ private fun TopicDetail(
 }
 
 @Composable
-private fun TextSection(title: String, value: String) {
-    Section(title) {
-        Text(if (value.isBlank()) "暂无" else value, color = Color(0xFF27313F))
-    }
-}
-
-@Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
-    AppCard {
-        Text(title, color = Color(0xFF2563EB), fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(6.dp))
-        content()
-    }
-}
-
-@Composable
-private fun AppCard(
-    modifier: Modifier = Modifier,
-    container: Color = Color.White,
-    content: @Composable ColumnScope.() -> Unit,
+private fun DetailHeader(
+    topic: Topic,
+    mastered: Boolean,
+    onToggleMastered: () -> Unit,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = container),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = Color(0xFFEAF2FF),
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = content
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        topic.name.ifBlank { topic.id },
+                        fontSize = 24.sp,
+                        lineHeight = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        topic.human,
+                        color = Color(0xFF435064),
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                    )
+                }
+                if (topic.grade.isNotBlank()) SmallTag(topic.grade)
+            }
+            Button(onClick = onToggleMastered) {
+                Text(if (mastered) "取消已理解" else "标记已理解")
+            }
+        }
+    }
+}
+
+@Composable
+private fun LearningMap(
+    topic: Topic,
+    topics: List<Topic>,
+    mastered: Set<String>,
+) {
+    DetailPanel(title = "知识地图") {
+        MapRow("已理解前置", topic.prerequisites.names(topics, onlyMastered = mastered))
+        MapRow("待补前置", topic.prerequisites.names(topics, excludeMastered = mastered))
+        MapRow("后续知识", topic.next.names(topics))
+    }
+}
+
+@Composable
+private fun DetailPanel(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                title,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun MapRow(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontSize = 15.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun TermRow(term: String, explanation: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(term, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        BodyText(explanation)
+    }
+}
+
+@Composable
+private fun RouteStep(index: Int, value: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFEAF2FF)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(index.toString(), color = Color(0xFF1D4ED8), fontSize = 12.sp)
+        }
+        BodyText(value, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun AnswerBubble(answer: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFF1F8F7),
+    ) {
+        Text(
+            answer,
+            modifier = Modifier.padding(14.dp),
+            color = Color(0xFF27313F),
+            fontSize = 15.sp,
+            lineHeight = 23.sp,
         )
     }
 }
 
 @Composable
-private fun Chip(value: String) {
-    AssistChip(onClick = {}, label = { Text(value) })
+private fun BodyText(
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        value,
+        modifier = modifier,
+        color = Color(0xFF27313F),
+        fontSize = 15.sp,
+        lineHeight = 23.sp,
+    )
 }
 
 @Composable
-private fun StatusDot(active: Boolean) {
+private fun SmallTag(value: String) {
+    AssistChip(
+        onClick = {},
+        label = { Text(value, fontSize = 12.sp) },
+    )
+}
+
+@Composable
+private fun ErrorPanel(
+    message: String,
+    onReload: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFFFF1F0),
+        border = BorderStroke(1.dp, Color(0xFFFFDAD6)),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("加载失败", color = Color(0xFFB42318), fontWeight = FontWeight.SemiBold)
+                Text(message, color = Color(0xFF8C1D18), fontSize = 13.sp, maxLines = 2)
+            }
+            Button(onClick = onReload) {
+                Text("重试")
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyPanel() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+    ) {
+        Text(
+            "没有匹配结果",
+            modifier = Modifier.padding(18.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun LoadingTopicRow() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, Color(0xFFE4E8F0)),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            LoadingBar(width = 0.42f, height = 18.dp)
+            LoadingBar(width = 0.88f, height = 14.dp)
+            LoadingBar(width = 0.55f, height = 14.dp)
+        }
+    }
+}
+
+@Composable
+private fun LoadingBar(width: Float, height: androidx.compose.ui.unit.Dp) {
     Box(
         modifier = Modifier
-            .size(12.dp)
-            .clip(CircleShape)
-            .background(if (active) Color(0xFF16A34A) else Color(0xFFCBD5E1))
+            .fillMaxWidth(width)
+            .height(height)
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color(0xFFE8ECF4)),
     )
 }
 
@@ -448,6 +843,7 @@ private fun loadMastered(context: Context): Set<String> =
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         .getStringSet(MASTERED_TOPICS, emptySet())
         .orEmpty()
+        .toSet()
 
 private fun saveMastered(context: Context, value: Set<String>) {
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
