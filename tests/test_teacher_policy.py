@@ -1,3 +1,4 @@
+from math_learning_graph.models import LearningProfile
 from math_learning_graph.seed import load_seed_knowledge_points
 from math_learning_graph.teacher import build_teacher_answer, build_teacher_prompt
 
@@ -37,3 +38,34 @@ def test_teacher_answer_is_student_facing_and_explains_terms():
     assert "变量" in answer
     assert "输入" in answer
     assert "为什么要用它" in answer
+
+
+def test_teacher_answer_uses_learning_memory_names():
+    point = next(
+        item for item in load_seed_knowledge_points() if item.id == "linear_equation_one_variable"
+    )
+    profile = LearningProfile(
+        topic_id="linear_equation_one_variable",
+        mastered=["equality", "arithmetic_operations"],
+        weak=["transposition"],
+        future=["function_intro"],
+    )
+
+    answer = build_teacher_answer(
+        point,
+        student_age=12,
+        question="一元一次方程为什么要这样解？",
+        learning_profile=profile,
+        topic_names={
+            "equality": "等式",
+            "arithmetic_operations": "四则运算",
+            "transposition": "移项",
+            "function_intro": "函数入门",
+        },
+    )
+
+    assert "你的掌握记录" in answer
+    assert "等式" in answer
+    assert "四则运算" in answer
+    assert "移项" in answer
+    assert "函数入门" in answer

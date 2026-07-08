@@ -34,6 +34,18 @@ def test_service_exposes_primary_to_junior_roadmap():
     assert any("fraction" in item.core_topic_ids for item in roadmap)
 
 
+def test_service_includes_first_batch_textbook_detail_nodes():
+    service = MathLearningService.create_default()
+
+    topics = service.list_topics()
+    topic_ids = {topic.id for topic in topics}
+
+    assert len(topics) >= 75
+    assert "number_comparison" in topic_ids
+    assert "linear_equation_applications" in topic_ids
+    assert "function_graph_reading" in topic_ids
+
+
 def test_domain_and_roadmap_endpoints_return_framework():
     client = TestClient(create_app())
 
@@ -72,5 +84,26 @@ def test_teacher_answer_endpoint_returns_student_facing_answer():
     assert response.status_code == 200
     data = response.json()
     assert data["topic_id"] == "function_intro"
-    assert "先用人话说" in data["answer"]
+    assert "可以先这样理解" in data["answer"]
     assert "输入" in data["answer"]
+
+
+def test_teacher_answer_endpoint_uses_mastered_learning_memory():
+    client = TestClient(create_app())
+
+    response = client.get(
+        "/topics/linear_equation_one_variable/teacher-answer",
+        params={
+            "age": 12,
+            "question": "一元一次方程为什么要这样解？",
+            "mastered": "equality,arithmetic_operations",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["learning_profile"]["mastered"] == ["arithmetic_operations", "equality"]
+    assert "transposition" in data["learning_profile"]["weak"]
+    assert "等式" in data["answer"]
+    assert "四则运算" in data["answer"]
+    assert "可能要先补" in data["answer"]

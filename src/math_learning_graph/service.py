@@ -57,11 +57,20 @@ class MathLearningService:
         topic_id: str,
         student_age: int,
         question: str,
+        mastered_topic_ids: set[str] | None = None,
     ) -> TeacherPromptResponse:
         point = self.get_topic(topic_id)
+        mastered_topic_ids = mastered_topic_ids or set()
+        profile = self.learning_profile(topic_id, mastered_topic_ids)
         return TeacherPromptResponse(
             topic_id=topic_id,
-            prompt=build_teacher_prompt(point, student_age=student_age, question=question),
+            prompt=build_teacher_prompt(
+                point,
+                student_age=student_age,
+                question=question,
+                learning_profile=profile,
+                topic_names=self._topic_names(),
+            ),
         )
 
     def teacher_answer(
@@ -69,9 +78,22 @@ class MathLearningService:
         topic_id: str,
         student_age: int,
         question: str,
+        mastered_topic_ids: set[str] | None = None,
     ) -> TeacherAnswerResponse:
         point = self.get_topic(topic_id)
+        mastered_topic_ids = mastered_topic_ids or set()
+        profile = self.learning_profile(topic_id, mastered_topic_ids)
         return TeacherAnswerResponse(
             topic_id=topic_id,
-            answer=build_teacher_answer(point, student_age=student_age, question=question),
+            answer=build_teacher_answer(
+                point,
+                student_age=student_age,
+                question=question,
+                learning_profile=profile,
+                topic_names=self._topic_names(),
+            ),
+            learning_profile=profile,
         )
+
+    def _topic_names(self) -> dict[str, str]:
+        return {point.id: point.name for point in self._graph.all_points()}

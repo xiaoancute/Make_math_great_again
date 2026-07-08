@@ -35,6 +35,9 @@ class KnowledgeGraph:
         except KeyError as exc:
             raise KeyError(f"Unknown topic id: {topic_id}") from exc
 
+    def all_points(self) -> list[KnowledgePoint]:
+        return [self._points[topic_id] for topic_id in self.learning_order()]
+
     def is_acyclic(self) -> bool:
         return nx.is_directed_acyclic_graph(self._graph)
 

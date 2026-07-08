@@ -101,3 +101,4 @@ class TeacherAnswerResponse(BaseModel):
 
     topic_id: str
     answer: str
+    learning_profile: LearningProfile | None = None

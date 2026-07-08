@@ -13,6 +13,10 @@ from math_learning_graph.models import (
 from math_learning_graph.service import MathLearningService
 
 
+def _parse_mastered_ids(mastered: str) -> set[str]:
+    return {item.strip() for item in mastered.split(",") if item.strip()}
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="Make Math Great Again Core")
     service = MathLearningService.create_default()
@@ -45,9 +49,15 @@ def create_app() -> FastAPI:
         topic_id: str,
         age: int = Query(ge=6, le=16),
         question: str = Query(min_length=1),
+        mastered: str = Query(default=""),
     ) -> TeacherPromptResponse:
         try:
-            return service.teacher_prompt(topic_id, student_age=age, question=question)
+            return service.teacher_prompt(
+                topic_id,
+                student_age=age,
+                question=question,
+                mastered_topic_ids=_parse_mastered_ids(mastered),
+            )
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -56,9 +66,15 @@ def create_app() -> FastAPI:
         topic_id: str,
         age: int = Query(ge=6, le=16),
         question: str = Query(min_length=1),
+        mastered: str = Query(default=""),
     ) -> TeacherAnswerResponse:
         try:
-            return service.teacher_answer(topic_id, student_age=age, question=question)
+            return service.teacher_answer(
+                topic_id,
+                student_age=age,
+                question=question,
+                mastered_topic_ids=_parse_mastered_ids(mastered),
+            )
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -67,9 +83,8 @@ def create_app() -> FastAPI:
         topic_id: str,
         mastered: str = Query(default=""),
     ) -> LearningProfile:
-        mastered_ids = {item.strip() for item in mastered.split(",") if item.strip()}
         try:
-            return service.learning_profile(topic_id, mastered_ids)
+            return service.learning_profile(topic_id, _parse_mastered_ids(mastered))
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

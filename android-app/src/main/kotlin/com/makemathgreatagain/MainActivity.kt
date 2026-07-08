@@ -165,6 +165,7 @@ private enum class MainTab(val label: String) {
     School("校内"),
     Understand("理解"),
     Review("复习"),
+    Settings("设置"),
 }
 
 @Composable
@@ -207,9 +208,9 @@ private fun MmgaApp() {
                     state = state.copy(mastered = mastered)
                 },
                 onAsk = { topic, question ->
-                    state = state.copy(answer = "加载中")
+                    state = state.copy(answer = "AI 老师正在根据掌握记录回答")
                     state = try {
-                        state.copy(answer = fetchTeacherAnswer(topic.id, question))
+                        state.copy(answer = fetchTeacherAnswer(topic.id, question, state.mastered))
                     } catch (_: Exception) {
                         state.copy(answer = "请求失败")
                     }
@@ -319,6 +320,13 @@ private fun AppScreen(
                     onSelect = onSelect,
                     modifier = Modifier.padding(padding),
                 )
+
+                MainTab.Settings -> SettingsScreen(
+                    state = state,
+                    onReload = onReload,
+                    onSelect = onSelect,
+                    modifier = Modifier.padding(padding),
+                )
             }
         }
     }
@@ -330,6 +338,7 @@ private fun TabIcon(tab: MainTab) {
         MainTab.School -> SchoolGlyph()
         MainTab.Understand -> RouteGlyph()
         MainTab.Review -> ReviewGlyph()
+        MainTab.Settings -> SettingsGlyph()
     }
 }
 
@@ -412,6 +421,43 @@ private fun ReviewGlyph() {
                     .height(2.dp)
                     .background(contentColor),
             )
+        }
+    }
+}
+
+@Composable
+private fun SettingsGlyph() {
+    val contentColor = LocalContentColor.current
+
+    Column(
+        modifier = Modifier.size(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
+    ) {
+        SliderGlyphRow(dotOnLeft = false, color = contentColor)
+        SliderGlyphRow(dotOnLeft = true, color = contentColor)
+        SliderGlyphRow(dotOnLeft = false, color = contentColor.copy(alpha = 0.75f))
+    }
+}
+
+@Composable
+private fun SliderGlyphRow(dotOnLeft: Boolean, color: Color) {
+    Row(
+        modifier = Modifier.width(18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        if (dotOnLeft) {
+            Box(Modifier.size(5.dp).clip(CircleShape).background(color))
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(2.dp)
+                .background(color.copy(alpha = 0.7f)),
+        )
+        if (!dotOnLeft) {
+            Box(Modifier.size(5.dp).clip(CircleShape).background(color))
         }
     }
 }
@@ -707,6 +753,145 @@ private fun ReviewScreen(
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun SettingsScreen(
+    state: UiState,
+    onReload: () -> Unit,
+    onSelect: (Topic) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val orderedTopics = state.topics.understandingOrdered()
+    val openTopics = orderedTopics.filter { it.id !in state.mastered }
+    val nextTopic = openTopics.firstOrNull()
+    val weakNames = nextTopic
+        ?.prerequisites
+        ?.filter { it !in state.mastered }
+        ?.names(state.topics)
+        .orEmpty()
+
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = ScreenPadding),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item {
+            SettingsHeader(
+                total = state.topics.size,
+                mastered = state.mastered.size,
+                loading = state.loading,
+            )
+        }
+        if (state.error != null) {
+            item { ErrorPanel(message = state.error, onReload = onReload) }
+        }
+        item {
+            DetailPanel(title = "AI 老师") {
+                SettingRow("连接地址", API_BASE_URL)
+                SettingRow("学习记忆", "使用本机已掌握记录：${state.mastered.size} 个知识点")
+                BodyText("问 AI 老师时，会把已会知识和可能薄弱的前置知识一起带上。")
+                Button(
+                    onClick = {
+                        if (nextTopic != null) onSelect(nextTopic)
+                    },
+                    enabled = nextTopic != null,
+                    shape = CardShape,
+                ) {
+                    Text("去问下一步知识")
+                }
+            }
+        }
+        item {
+            DetailPanel(title = "个人知识地图") {
+                SettingRow("已经懂", "${state.mastered.size} 个")
+                SettingRow(
+                    "还没懂",
+                    "${(state.topics.size - state.mastered.size).coerceAtLeast(0)} 个",
+                )
+                SettingRow("下一步", nextTopic?.name ?: "暂无")
+                SettingRow("可能先补", weakNames.ifBlank { "暂无" })
+            }
+        }
+        item {
+            DetailPanel(title = "内容范围") {
+                SettingRow("当前内置", "${state.topics.size} 个核心骨架节点")
+                SettingRow("覆盖方式", "按小学到初中主线、校内年级和理解依赖组织")
+                BodyText(
+                    "这不是完整教材章节点数量。"
+                        + "后续需要继续按教材章、节、小节把骨架拆细。",
+                )
+            }
+        }
+        item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun SettingsHeader(
+    total: Int,
+    mastered: Int,
+    loading: Boolean,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "设置",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                MetricBlock(
+                    label = if (loading) "同步中" else "知识点",
+                    value = total.toString(),
+                    modifier = Modifier.weight(1f),
+                )
+                MetricBlock(
+                    label = "AI 记忆",
+                    value = mastered.toString(),
+                    modifier = Modifier.weight(1f),
+                    valueColor = MaterialTheme.colorScheme.secondary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingRow(
+    label: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            label,
+            modifier = Modifier.width(82.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 13.sp,
+            lineHeight = 20.sp,
+        )
+        Text(
+            value,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+        )
     }
 }
 
@@ -1109,13 +1294,14 @@ private fun TopicDetail(
             }
         }
         item {
-            DetailPanel(title = "提问") {
+            DetailPanel(title = "问 AI 老师") {
+                AIMemoryNote(topic = topic, topics = topics, mastered = mastered)
                 OutlinedTextField(
                     value = question,
                     onValueChange = { question = it },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
-                    label = { Text("哪里没听懂？可以直接问") },
+                    label = { Text("卡住的词、步骤或题目") },
                     enabled = !asking,
                     shape = CardShape,
                 )
@@ -1145,7 +1331,7 @@ private fun TopicDetail(
                             )
                             Spacer(Modifier.width(8.dp))
                         }
-                        Text("发送")
+                        Text("问老师")
                     }
                 }
                 if (answer.isNotBlank()) {
@@ -1154,6 +1340,22 @@ private fun TopicDetail(
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun AIMemoryNote(
+    topic: Topic,
+    topics: List<Topic>,
+    mastered: Set<String>,
+) {
+    val known = topic.prerequisites.names(topics, onlyMastered = mastered)
+    val weak = topic.prerequisites.names(topics, excludeMastered = mastered)
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SmallTag("会参考已懂记录：${mastered.size} 个")
+        MapRow("本题前面已经会", known)
+        MapRow("本题前面可能要补", weak)
     }
 }
 
@@ -1464,9 +1666,9 @@ private fun Topic.schoolPlace(): String {
 private fun Topic.understandingPreview(): String {
     val steps = route.take(4)
     return if (steps.isEmpty()) {
-        "先用人话理解：" + human.ifBlank { name }
+        "入口：" + human.ifBlank { name }
     } else {
-        "按这个顺序想：${steps.joinToString(" -> ")}"
+        "顺序：${steps.joinToString(" -> ")}"
     }
 }
 
@@ -1637,10 +1839,19 @@ private suspend fun fetchTopics(): List<Topic> = withContext(Dispatchers.IO) {
     List(array.length()) { index -> array.getJSONObject(index).toTopic() }
 }
 
-private suspend fun fetchTeacherAnswer(topicId: String, question: String): String =
+private suspend fun fetchTeacherAnswer(
+    topicId: String,
+    question: String,
+    mastered: Set<String>,
+): String =
     withContext(Dispatchers.IO) {
         val query = URLEncoder.encode(question, StandardCharsets.UTF_8.name())
-        JSONObject(fetch("/topics/$topicId/teacher-answer?age=12&question=$query"))
+        val memory = URLEncoder.encode(
+            mastered.sorted().joinToString(","),
+            StandardCharsets.UTF_8.name(),
+        )
+        val path = "/topics/$topicId/teacher-answer?age=12&question=$query&mastered=$memory"
+        JSONObject(fetch(path))
             .optString("answer")
     }
 
