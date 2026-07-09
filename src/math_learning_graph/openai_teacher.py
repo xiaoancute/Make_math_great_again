@@ -5,6 +5,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from math_learning_graph.models import AIStatusResponse
+
 TEACHER_INSTRUCTIONS = "你是一名耐心、严格、循序渐进的中文数学老师。"
 
 
@@ -44,6 +46,22 @@ def openai_teacher_from_env(model: str | None = None) -> OpenAITeacherClient | N
     if not selected_model:
         return None
     return OpenAITeacherClient(OpenAITeacherConfig(api_key=api_key, model=selected_model))
+
+
+def ai_status_from_env(model: str | None = None) -> AIStatusResponse:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    request_model = (model or "").strip()
+    env_model = os.getenv("OPENAI_MODEL", "").strip()
+    selected_model = request_model or env_model
+    source = "request" if request_model else "environment" if env_model else "missing"
+    return AIStatusResponse(
+        backend="ok",
+        openai_key_configured=bool(api_key),
+        model_configured=bool(selected_model),
+        model=selected_model,
+        model_source=source,
+        ready=bool(api_key and selected_model),
+    )
 
 
 def _create_openai_client(config: OpenAITeacherConfig) -> Any:

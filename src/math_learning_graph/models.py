@@ -123,3 +123,20 @@ class TeacherAnswerRequest(BaseModel):
     model: str | None = None
     mastered: list[str] = Field(default_factory=list)
     memories: list[TopicMemoryInput] = Field(default_factory=list)
+
+
+class AIStatusRequest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    model: str | None = None
+
+
+class AIStatusResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    backend: str
+    openai_key_configured: bool
+    model_configured: bool
+    model: str
+    model_source: str
+    ready: bool

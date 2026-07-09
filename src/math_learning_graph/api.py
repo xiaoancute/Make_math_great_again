@@ -3,6 +3,8 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException, Query
 
 from math_learning_graph.models import (
+    AIStatusRequest,
+    AIStatusResponse,
     DomainOverview,
     KnowledgePoint,
     LearningProfile,
@@ -11,6 +13,7 @@ from math_learning_graph.models import (
     TeacherAnswerResponse,
     TeacherPromptResponse,
 )
+from math_learning_graph.openai_teacher import ai_status_from_env
 from math_learning_graph.service import MathLearningService
 
 
@@ -25,6 +28,10 @@ def create_app() -> FastAPI:
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.post("/ai/status", response_model=AIStatusResponse)
+    def ai_status(request: AIStatusRequest) -> AIStatusResponse:
+        return ai_status_from_env(request.model)
 
     @app.get("/domains", response_model=list[DomainOverview])
     def list_domains() -> list[DomainOverview]:

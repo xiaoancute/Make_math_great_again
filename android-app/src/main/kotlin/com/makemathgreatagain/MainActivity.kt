@@ -168,6 +168,7 @@ private data class UiState(
     val answer: String = "",
     val apiBaseUrl: String = DEFAULT_API_BASE_URL,
     val aiModel: String = "",
+    val aiStatus: String = "",
     val dataSource: String = "本机离线",
     val syncWarning: String? = null,
 ) {
@@ -293,6 +294,24 @@ private fun MmgaApp() {
                     saveAiModel(context, normalized)
                     state = state.copy(aiModel = normalized)
                 },
+                onCheckAi = { apiBaseUrl, model ->
+                    val normalizedUrl = normalizeBaseUrl(apiBaseUrl)
+                    val normalizedModel = model.trim()
+                    saveApiBaseUrl(context, normalizedUrl)
+                    saveAiModel(context, normalizedModel)
+                    state = state.copy(
+                        apiBaseUrl = normalizedUrl,
+                        aiModel = normalizedModel,
+                        aiStatus = "正在测试连接",
+                    )
+                    scope.launch {
+                        state = try {
+                            state.copy(aiStatus = fetchAiStatus(normalizedUrl, normalizedModel))
+                        } catch (_: Exception) {
+                            state.copy(aiStatus = "后端不可达")
+                        }
+                    }
+                },
             )
         }
     }
@@ -310,6 +329,7 @@ private fun AppScreen(
     onAsk: suspend (Topic, String) -> Unit,
     onSaveApiBaseUrl: (String) -> Unit,
     onSaveAiModel: (String) -> Unit,
+    onCheckAi: (String, String) -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.School) }
 
@@ -410,6 +430,7 @@ private fun AppScreen(
                     onSelect = onSelect,
                     onSaveApiBaseUrl = onSaveApiBaseUrl,
                     onSaveAiModel = onSaveAiModel,
+                    onCheckAi = onCheckAi,
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -869,6 +890,7 @@ private fun ReviewScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SettingsScreen(
     state: UiState,
@@ -876,6 +898,7 @@ private fun SettingsScreen(
     onSelect: (Topic) -> Unit,
     onSaveApiBaseUrl: (String) -> Unit,
     onSaveAiModel: (String) -> Unit,
+    onCheckAi: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var apiBaseUrl by rememberSaveable(state.apiBaseUrl) {
@@ -928,9 +951,10 @@ private fun SettingsScreen(
                     label = { Text("模型名称") },
                     shape = CardShape,
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(
                         onClick = { onSaveApiBaseUrl(apiBaseUrl) },
@@ -939,7 +963,6 @@ private fun SettingsScreen(
                     ) {
                         Text("保存并同步")
                     }
-                    Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = { onSaveAiModel(aiModel) },
                         enabled = aiModel.trim() != state.aiModel,
@@ -947,6 +970,16 @@ private fun SettingsScreen(
                     ) {
                         Text("保存模型")
                     }
+                    Button(
+                        onClick = { onCheckAi(apiBaseUrl, aiModel) },
+                        enabled = apiBaseUrl.isNotBlank(),
+                        shape = CardShape,
+                    ) {
+                        Text("测试连接")
+                    }
+                }
+                if (state.aiStatus.isNotBlank()) {
+                    SettingRow("连接状态", state.aiStatus)
                 }
                 SettingRow(
                     "学习记忆",
@@ -2050,6 +2083,22 @@ private suspend fun fetchTeacherAnswer(
             .put("memories", memories.sortedBy { it.topicId }.toRequestJsonArray())
         JSONObject(post(baseUrl, "/topics/$topicId/teacher-answer", body.toString()))
             .optString("answer")
+    }
+
+private suspend fun fetchAiStatus(baseUrl: String, model: String): String =
+    withContext(Dispatchers.IO) {
+        val body = JSONObject().put("model", model.trim())
+        val data = JSONObject(post(baseUrl, "/ai/status", body.toString()))
+        val backendOk = data.optString("backend") == "ok"
+        val hasKey = data.optBoolean("openai_key_configured")
+        val hasModel = data.optBoolean("model_configured")
+        val selectedModel = data.optString("model")
+        when {
+            !backendOk -> "后端异常"
+            !hasKey -> "后端缺少 OPENAI_API_KEY"
+            !hasModel -> "请填写模型名称"
+            else -> "AI 可用：$selectedModel"
+        }
     }
 
 private fun JSONArray.toTopics(): List<Topic> =

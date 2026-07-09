@@ -142,3 +142,33 @@ def test_teacher_answer_post_endpoint_accepts_local_memory_records():
     assert "本机复习记录" in data["answer"]
     assert "移项" in data["answer"]
     assert "遗忘 2 次" in data["answer"]
+
+
+def test_ai_status_endpoint_reports_missing_model_and_key(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    client = TestClient(create_app())
+
+    response = client.post("/ai/status", json={"model": ""})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["backend"] == "ok"
+    assert data["openai_key_configured"] is False
+    assert data["model_configured"] is False
+    assert data["ready"] is False
+
+
+def test_ai_status_endpoint_accepts_request_model(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    client = TestClient(create_app())
+
+    response = client.post("/ai/status", json={"model": "user-model"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["openai_key_configured"] is True
+    assert data["model"] == "user-model"
+    assert data["model_source"] == "request"
+    assert data["ready"] is True
