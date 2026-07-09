@@ -81,7 +81,8 @@ import java.nio.charset.StandardCharsets
 
 private const val PREFS = "math_learning"
 private const val MASTERED_TOPICS = "mastered_topics"
-private const val API_BASE_URL = "http://10.0.2.2:8000"
+private const val API_BASE_URL_PREF = "api_base_url"
+private const val DEFAULT_API_BASE_URL = "http://10.0.2.2:8000"
 
 private val MmgaColors = lightColorScheme(
     primary = Color(0xFF315CA8),
@@ -143,10 +144,13 @@ private data class TextbookPosition(
 private data class UiState(
     val loading: Boolean = true,
     val error: String? = null,
-    val topics: List<Topic> = emptyList(),
+    val topics: List<Topic> = BuiltInTopics,
     val selected: Topic? = null,
     val mastered: Set<String> = emptySet(),
     val answer: String = "",
+    val apiBaseUrl: String = DEFAULT_API_BASE_URL,
+    val dataSource: String = "本机内置",
+    val syncWarning: String? = null,
 )
 
 private data class GradeBucket(
@@ -172,21 +176,41 @@ private enum class MainTab(val label: String) {
 private fun MmgaApp() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var state by remember { mutableStateOf(UiState(mastered = loadMastered(context))) }
+    var state by remember {
+        mutableStateOf(
+            UiState(
+                loading = false,
+                mastered = loadMastered(context),
+                apiBaseUrl = loadApiBaseUrl(context),
+            ),
+        )
+    }
 
-    suspend fun loadTopics() {
+    suspend fun loadTopics(baseUrl: String = state.apiBaseUrl) {
         val selectedId = state.selected?.id
         state = state.copy(loading = true, error = null)
         state = try {
-            val topics = fetchTopics()
+            val topics = fetchTopics(baseUrl)
             state.copy(
                 loading = false,
                 topics = topics,
                 selected = selectedId?.let { id -> topics.firstOrNull { it.id == id } },
                 error = null,
+                dataSource = "后端同步",
+                syncWarning = null,
             )
         } catch (error: Exception) {
-            state.copy(loading = false, error = error.message ?: "Request failed")
+            state.copy(
+                loading = false,
+                topics = state.topics.ifEmpty { BuiltInTopics },
+                selected = selectedId?.let { id ->
+                    state.topics.firstOrNull { it.id == id }
+                        ?: BuiltInTopics.firstOrNull { it.id == id }
+                },
+                error = null,
+                dataSource = "本机内置",
+                syncWarning = error.message ?: "后端暂时不可用",
+            )
         }
     }
 
@@ -210,10 +234,26 @@ private fun MmgaApp() {
                 onAsk = { topic, question ->
                     state = state.copy(answer = "AI 老师正在根据掌握记录回答")
                     state = try {
-                        state.copy(answer = fetchTeacherAnswer(topic.id, question, state.mastered))
+                        state.copy(
+                            answer = fetchTeacherAnswer(
+                                state.apiBaseUrl,
+                                topic.id,
+                                question,
+                                state.mastered,
+                            ),
+                        )
                     } catch (_: Exception) {
-                        state.copy(answer = "请求失败")
+                        state.copy(
+                            answer = "AI 后端未连接。校内内容可以继续看；"
+                                + "设置里填可访问的后端地址后再问。",
+                        )
                     }
+                },
+                onSaveApiBaseUrl = { apiBaseUrl ->
+                    val normalized = normalizeBaseUrl(apiBaseUrl)
+                    saveApiBaseUrl(context, normalized)
+                    state = state.copy(apiBaseUrl = normalized)
+                    scope.launch { loadTopics(normalized) }
                 },
             )
         }
@@ -229,6 +269,7 @@ private fun AppScreen(
     onBack: () -> Unit,
     onToggleMastered: (Topic) -> Unit,
     onAsk: suspend (Topic, String) -> Unit,
+    onSaveApiBaseUrl: (String) -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.School) }
 
@@ -325,6 +366,7 @@ private fun AppScreen(
                     state = state,
                     onReload = onReload,
                     onSelect = onSelect,
+                    onSaveApiBaseUrl = onSaveApiBaseUrl,
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -761,8 +803,12 @@ private fun SettingsScreen(
     state: UiState,
     onReload: () -> Unit,
     onSelect: (Topic) -> Unit,
+    onSaveApiBaseUrl: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var apiBaseUrl by rememberSaveable(state.apiBaseUrl) {
+        mutableStateOf(state.apiBaseUrl)
+    }
     val orderedTopics = state.topics.understandingOrdered()
     val openTopics = orderedTopics.filter { it.id !in state.mastered }
     val nextTopic = openTopics.firstOrNull()
@@ -790,7 +836,26 @@ private fun SettingsScreen(
         }
         item {
             DetailPanel(title = "AI 老师") {
-                SettingRow("连接地址", API_BASE_URL)
+                OutlinedTextField(
+                    value = apiBaseUrl,
+                    onValueChange = { apiBaseUrl = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("后端地址") },
+                    shape = CardShape,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    Button(
+                        onClick = { onSaveApiBaseUrl(apiBaseUrl) },
+                        enabled = normalizeBaseUrl(apiBaseUrl) != state.apiBaseUrl,
+                        shape = CardShape,
+                    ) {
+                        Text("保存并同步")
+                    }
+                }
                 SettingRow("学习记忆", "使用本机已掌握记录：${state.mastered.size} 个知识点")
                 BodyText("问 AI 老师时，会把已会知识和可能薄弱的前置知识一起带上。")
                 Button(
@@ -817,8 +882,12 @@ private fun SettingsScreen(
         }
         item {
             DetailPanel(title = "内容范围") {
-                SettingRow("当前内置", "${state.topics.size} 个核心骨架节点")
+                SettingRow("内容来源", state.dataSource)
+                SettingRow("当前可用", "${state.topics.size} 个知识点")
                 SettingRow("覆盖方式", "按小学到初中主线、校内年级和理解依赖组织")
+                if (state.syncWarning != null) {
+                    BodyText("后端未同步，当前显示本机内容。")
+                }
                 BodyText(
                     "这不是完整教材章节点数量。"
                         + "后续需要继续按教材章、节、小节把骨架拆细。",
@@ -1577,7 +1646,7 @@ private fun ErrorPanel(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("加载失败", color = Color(0xFFB42318), fontWeight = FontWeight.SemiBold)
+                Text("同步失败", color = Color(0xFFB42318), fontWeight = FontWeight.SemiBold)
                 Text(message, color = Color(0xFF8C1D18), fontSize = 13.sp, maxLines = 2)
             }
             Button(onClick = onReload, shape = CardShape) {
@@ -1834,12 +1903,381 @@ private fun String?.chapterOrder(): Int {
     return 99
 }
 
-private suspend fun fetchTopics(): List<Topic> = withContext(Dispatchers.IO) {
-    val array = JSONArray(fetch("/topics"))
+private val BuiltInTopics = listOf(
+    builtInTopic(
+        id = "number_recognition",
+        name = "数的认识",
+        gradeBand = "primary",
+        grade = "一年级上册",
+        chapter = "数一数",
+        section = "数表示多少",
+        human = "数是用来回答“有多少”的工具。",
+        why = "后面所有计算、测量和比较都要先知道数表示什么。",
+        terms = mapOf("数" to "表示多少的记号。", "计数" to "一个一个对应着数出来。"),
+        next = listOf("number_comparison", "place_value_decimal_system"),
+        route = listOf("一个物体对应一个数", "数的顺序", "多少", "数字记号"),
+        examples = listOf("数铅笔", "数台阶"),
+        visuals = listOf("实物计数", "点子图"),
+    ),
+    builtInTopic(
+        id = "number_comparison",
+        name = "数的大小比较",
+        gradeBand = "primary",
+        grade = "一年级上册至二年级下册",
+        chapter = "数的认识",
+        section = "比较多少与大小",
+        human = "比较大小是在判断两个数量谁多、谁少。",
+        why = "估算、排序、分数小数比较和不等式都要先会比较。",
+        terms = mapOf("大于" to "比另一个数多。", "小于" to "比另一个数少。"),
+        prerequisites = listOf("number_recognition"),
+        next = listOf("place_value_decimal_system"),
+        route = listOf("一一对应", "多少", "数轴位置", "大于小于符号"),
+        examples = listOf("比较两盒彩笔谁多", "按身高排队"),
+        visuals = listOf("点子图", "数轴"),
+    ),
+    builtInTopic(
+        id = "place_value_decimal_system",
+        name = "十进制与位值",
+        gradeBand = "primary",
+        grade = "一年级下册至四年级上册",
+        chapter = "100以内数的认识 / 大数的认识",
+        section = "数位与计数单位",
+        human = "同一个数字放在不同位置，表示的大小不一样。",
+        why = "多位数、小数、竖式计算都靠位值来保证不乱。",
+        terms = mapOf("数位" to "数字所在的位置。", "计数单位" to "一、十、百这样的单位。"),
+        prerequisites = listOf("number_comparison"),
+        next = listOf("integer_addition_subtraction", "decimal"),
+        route = listOf("一捆十个", "十个十是一百", "位置不同", "值不同"),
+        examples = listOf("23里的2表示2个十", "305里的0表示十位没有"),
+        visuals = listOf("数位表", "小棒捆扎"),
+    ),
+    builtInTopic(
+        id = "integer_addition_subtraction",
+        name = "整数加减法",
+        gradeBand = "primary",
+        grade = "一年级上册至三年级上册",
+        chapter = "加法和减法",
+        section = "进位、退位与竖式",
+        human = "加法是在合起来，减法是在拿走或比较差多少。",
+        why = "这是理解数量变化和后续四则混合运算的入口。",
+        terms = mapOf("进位" to "某一位满十后换成高一位的一个。"),
+        prerequisites = listOf("place_value_decimal_system"),
+        next = listOf("multiplication_meaning", "division_meaning"),
+        route = listOf("合并或拿走", "按位对齐", "满十进一", "不够退一"),
+        examples = listOf("一共有多少本书", "还剩多少个苹果"),
+        visuals = listOf("数轴", "计数器"),
+    ),
+    builtInTopic(
+        id = "multiplication_meaning",
+        name = "乘法的意义",
+        gradeBand = "primary",
+        grade = "二年级上册",
+        chapter = "表内乘法",
+        section = "乘法的初步认识",
+        human = "乘法是在说几个相同的组一共有多少。",
+        why = "面积、比例、函数里的倍数关系都从乘法意义长出来。",
+        terms = mapOf("几个几" to "有几组，每组有同样多个。"),
+        prerequisites = listOf("integer_addition_subtraction"),
+        next = listOf("division_meaning", "area"),
+        route = listOf("重复加法", "相同组", "几个几", "乘法式子"),
+        examples = listOf("3盒彩笔，每盒6支", "4排座位，每排8个"),
+        visuals = listOf("阵列图", "分组图"),
+    ),
+    builtInTopic(
+        id = "division_meaning",
+        name = "除法的意义",
+        gradeBand = "primary",
+        grade = "二年级下册",
+        chapter = "表内除法",
+        section = "平均分",
+        human = "除法是在平均分，或者看一个数量里有几个同样的组。",
+        why = "分数、比、比例和概率都需要理解平均分和每份多少。",
+        terms = mapOf("平均分" to "每份一样多。", "商" to "除法算出的结果。"),
+        prerequisites = listOf("multiplication_meaning"),
+        next = listOf("fraction"),
+        route = listOf("平均分", "每份多少", "有几个组", "除法式子"),
+        examples = listOf("12颗糖平均分给4人", "18里面有几个3"),
+        visuals = listOf("分物图", "线段图"),
+    ),
+    builtInTopic(
+        id = "fraction",
+        name = "分数",
+        gradeBand = "primary",
+        grade = "三年级至五年级",
+        chapter = "分数的认识",
+        section = "几分之一与几分之几",
+        human = "分数表示把一个整体平均分后取其中几份。",
+        why = "比例、百分数、概率和代数式都需要表达不是整数的量。",
+        terms = mapOf(
+            "单位1" to "这次被当作一个完整整体的东西。",
+            "分母" to "整体被平均分成几份。",
+        ),
+        prerequisites = listOf("division_meaning"),
+        next = listOf("ratio", "probability"),
+        route = listOf("整体", "平均分", "取几份", "分数符号"),
+        examples = listOf("半块蛋糕", "四分之三杯水"),
+        visuals = listOf("面积模型", "数轴"),
+    ),
+    builtInTopic(
+        id = "decimal",
+        name = "小数",
+        gradeBand = "primary",
+        grade = "三年级下册至四年级下册",
+        chapter = "小数的初步认识",
+        section = "小数表示与大小比较",
+        human = "小数是把1继续平均分成十分、百分、千分后写出来的数。",
+        why = "测量、钱数、百分数和函数图像都经常使用小数。",
+        terms = mapOf("小数点" to "整数部分和小数部分的分界。"),
+        prerequisites = listOf("place_value_decimal_system", "division_meaning"),
+        next = listOf("ratio"),
+        route = listOf("单位1", "继续平均分", "十分位", "百分位", "小数点"),
+        examples = listOf("1.5米", "3.25元"),
+        visuals = listOf("数轴", "方格纸"),
+    ),
+    builtInTopic(
+        id = "measurement_units",
+        name = "常见量与单位",
+        gradeBand = "primary",
+        grade = "二年级上册至三年级上册",
+        chapter = "长度单位 / 时、分、秒 / 质量单位",
+        section = "单位认识与换算",
+        human = "单位是在说明这个数到底数的是什么。",
+        why = "没有单位，测量、面积、速度和应用题都会失去意义。",
+        terms = mapOf("单位" to "约定好的测量标准。", "换算" to "用不同单位表示同一个量。"),
+        prerequisites = listOf("number_recognition"),
+        next = listOf("area", "volume"),
+        route = listOf("量什么", "选单位", "读数", "换算", "检验是否合理"),
+        examples = listOf("3米和3厘米不是一回事", "1小时等于60分钟"),
+        visuals = listOf("尺子", "钟表"),
+    ),
+    builtInTopic(
+        id = "area",
+        name = "面积",
+        gradeBand = "primary",
+        grade = "三年级下册至五年级上册",
+        chapter = "面积 / 多边形的面积",
+        section = "长方形、三角形和梯形面积",
+        human = "面积是在问一个平面图形里面铺了多少个单位小方格。",
+        why = "面积模型能解释乘法、几何公式和二次函数直觉。",
+        terms = mapOf("面积单位" to "用来铺满平面的单位小方格。"),
+        prerequisites = listOf("measurement_units", "multiplication_meaning"),
+        next = listOf("volume"),
+        route = listOf("铺方格", "数方格", "长乘宽", "割补转化", "公式"),
+        examples = listOf("铺地砖", "计算土地大小"),
+        visuals = listOf("方格纸", "割补图"),
+    ),
+    builtInTopic(
+        id = "volume",
+        name = "体积",
+        gradeBand = "primary",
+        grade = "五年级下册",
+        chapter = "长方体和正方体",
+        section = "体积和容积",
+        human = "体积是在问一个立体里面能装多少个单位小正方体。",
+        why = "空间想象、单位换算和初中几何都需要体积直觉。",
+        terms = mapOf("体积单位" to "用来填满空间的小正方体。"),
+        prerequisites = listOf("area"),
+        next = listOf("coordinate_plane"),
+        route = listOf("一层方格", "很多层", "长宽高", "单位小正方体", "体积公式"),
+        examples = listOf("盒子能装多少", "水箱容量"),
+        visuals = listOf("积木模型", "展开图"),
+    ),
+    builtInTopic(
+        id = "ratio",
+        name = "比",
+        gradeBand = "primary",
+        grade = "六年级上册",
+        chapter = "比",
+        section = "比的意义",
+        human = "比是在比较两个数量之间的倍数关系。",
+        why = "比例、相似、三角函数和函数斜率都离不开比。",
+        terms = mapOf("比值" to "两个量相除得到的数。"),
+        prerequisites = listOf("fraction", "decimal"),
+        next = listOf("proportion"),
+        route = listOf("两个量", "谁和谁比", "除法", "比值", "等价的比"),
+        examples = listOf("果汁和水的配比", "地图比例尺"),
+        visuals = listOf("线段图", "双数轴"),
+    ),
+    builtInTopic(
+        id = "proportion",
+        name = "比例",
+        gradeBand = "primary",
+        grade = "六年级下册",
+        chapter = "比例",
+        section = "正比例、反比例和比例尺",
+        human = "比例是在说两个比相等，或者两个量按稳定规则一起变。",
+        why = "一次函数、反比例函数、相似图形和建模都需要比例直觉。",
+        terms = mapOf("正比例" to "一个量变成几倍，另一个量也变成几倍。"),
+        prerequisites = listOf("ratio"),
+        next = listOf("function_intro"),
+        route = listOf("比", "两个比相等", "变化关系", "正比例", "反比例"),
+        examples = listOf("速度一定时路程和时间", "总量一定时每份和份数"),
+        visuals = listOf("表格", "双数轴"),
+    ),
+    builtInTopic(
+        id = "equality",
+        name = "等式",
+        gradeBand = "primary",
+        grade = "小学四年级",
+        chapter = "简易方程准备",
+        section = "等量关系",
+        human = "等式就是两边表示同样多，像天平保持平衡。",
+        why = "方程和代数推理都要依赖两边保持相等这个想法。",
+        terms = mapOf("等号" to "表示左右两边一样多的符号。"),
+        next = listOf("quantity_relationship", "transposition"),
+        route = listOf("同样多", "两边平衡", "等号", "等式"),
+        examples = listOf("两袋苹果一样重", "5元加3元和8元一样多"),
+        visuals = listOf("天平模型", "左右数量条"),
+    ),
+    builtInTopic(
+        id = "quantity_relationship",
+        name = "数量关系",
+        gradeBand = "primary_to_junior",
+        grade = "小学高年级至初一",
+        chapter = "式与方程",
+        section = "用字母表示数",
+        human = "数量关系是在说两个或多个数量怎样互相影响。",
+        why = "函数、方程和应用题建模都从发现数量关系开始。",
+        terms = mapOf("变量" to "会变化的数量。", "关系" to "几个数量互相影响的方式。"),
+        prerequisites = listOf("equality"),
+        next = listOf("linear_equation_one_variable", "function_intro"),
+        route = listOf("生活变化", "两个量", "影响关系", "表达关系"),
+        examples = listOf("路程会随着时间增加", "总价会随着数量增加"),
+        visuals = listOf("关系表", "箭头图"),
+    ),
+    builtInTopic(
+        id = "transposition",
+        name = "移项",
+        gradeBand = "junior",
+        grade = "七年级上册",
+        chapter = "第三章 一元一次方程",
+        section = "解一元一次方程",
+        human = "移项不是把数随便搬家，而是在等式两边做同样操作后的简写。",
+        why = "解方程时要把含未知数的项和常数项整理到合适的位置。",
+        terms = mapOf("项" to "式子里用加号或减号分开的每一块。"),
+        prerequisites = listOf("equality"),
+        next = listOf("linear_equation_one_variable"),
+        route = listOf("等式平衡", "两边同操作", "整理未知数", "移项简写"),
+        examples = listOf("天平两边同时拿走同样重的砝码"),
+        visuals = listOf("天平变形", "左右式子颜色标注"),
+    ),
+    builtInTopic(
+        id = "linear_equation_one_variable",
+        name = "一元一次方程",
+        gradeBand = "junior",
+        grade = "七年级上册",
+        chapter = "第三章 一元一次方程",
+        section = "方程与解法",
+        human = "一元一次方程就是只有一个未知数，且未知数只出现一次方的等量关系。",
+        why = "它是从算术问题进入代数建模的第一道门。",
+        terms = mapOf(
+            "未知数" to "现在不知道、需要求出来的数。",
+            "方程" to "含有未知数的等式。",
+        ),
+        prerequisites = listOf("equality", "quantity_relationship", "transposition"),
+        next = listOf("function_intro"),
+        route = listOf("未知数", "等量关系", "列式", "等式变形", "求解"),
+        examples = listOf("已知总价和单价，求买了多少件"),
+        visuals = listOf("天平模型", "线段图"),
+    ),
+    builtInTopic(
+        id = "coordinate_plane",
+        name = "平面直角坐标系",
+        gradeBand = "junior",
+        grade = "七年级下册",
+        chapter = "第七章 平面直角坐标系",
+        section = "有序数对与坐标",
+        human = "坐标系用两个数确定平面上一个点的位置。",
+        why = "函数图像、几何变换和数据图都需要坐标语言。",
+        terms = mapOf("横坐标" to "表示左右位置的数。", "纵坐标" to "表示上下位置的数。"),
+        prerequisites = listOf("number_comparison"),
+        next = listOf("function_intro"),
+        route = listOf("一条数轴定位", "两条数轴", "横纵方向", "有序数对", "点的位置"),
+        examples = listOf("座位第3列第5排", "地图定位"),
+        visuals = listOf("坐标纸", "地图网格"),
+    ),
+    builtInTopic(
+        id = "function_intro",
+        name = "函数入门",
+        gradeBand = "junior",
+        grade = "八年级下册",
+        chapter = "第十九章 一次函数",
+        section = "函数的概念",
+        human = "函数是在描述一个量变了，另一个量怎样跟着变。",
+        why = "函数把变化关系变成可以预测、画图和推理的数学对象。",
+        terms = mapOf("输入" to "先给进去的那个数或条件。", "输出" to "根据输入得到的结果。"),
+        prerequisites = listOf("quantity_relationship", "coordinate_plane"),
+        next = listOf("probability"),
+        route = listOf("生活变化", "两个量之间关系", "输入输出", "表格", "图像", "表达式"),
+        examples = listOf("打车费用随里程变化", "水位随放水时间变化"),
+        visuals = listOf("输入输出机器", "表格", "坐标图像"),
+    ),
+    builtInTopic(
+        id = "probability",
+        name = "概率初步",
+        gradeBand = "junior",
+        grade = "九年级上册",
+        chapter = "第二十五章 概率初步",
+        section = "随机事件、列举法和频率估计概率",
+        human = "概率是在描述一件事发生的可能性有多大。",
+        why = "它让学生用数量而不是感觉判断不确定事件。",
+        terms = mapOf("随机事件" to "可能发生也可能不发生的事件。"),
+        prerequisites = listOf("fraction"),
+        route = listOf("可能或不可能", "所有结果", "有利结果", "比例", "频率估计"),
+        examples = listOf("掷骰子", "抽签"),
+        visuals = listOf("树状图", "列表"),
+    ),
+)
+
+private fun builtInTopic(
+    id: String,
+    name: String,
+    gradeBand: String,
+    grade: String,
+    chapter: String,
+    section: String,
+    human: String,
+    why: String,
+    terms: Map<String, String>,
+    prerequisites: List<String> = emptyList(),
+    next: List<String> = emptyList(),
+    route: List<String> = emptyList(),
+    examples: List<String> = emptyList(),
+    visuals: List<String> = emptyList(),
+): Topic = Topic(
+    id = id,
+    name = name,
+    gradeBand = gradeBand,
+    textbookPositions = listOf(
+        TextbookPosition(
+            curriculum = "本机内置数学主线",
+            grade = grade,
+            chapter = chapter,
+            section = section,
+        ),
+    ),
+    human = human,
+    lifeExamples = examples,
+    why = why,
+    formalDefinition = human,
+    prerequisites = prerequisites,
+    next = next,
+    terms = terms,
+    misconceptions = emptyList(),
+    formulas = emptyList(),
+    visuals = visuals,
+    exerciseTypes = emptyList(),
+    schoolRoute = listOf(grade, chapter, section),
+    route = route,
+)
+
+private suspend fun fetchTopics(baseUrl: String): List<Topic> = withContext(Dispatchers.IO) {
+    val array = JSONArray(fetch(baseUrl, "/topics"))
     List(array.length()) { index -> array.getJSONObject(index).toTopic() }
 }
 
 private suspend fun fetchTeacherAnswer(
+    baseUrl: String,
     topicId: String,
     question: String,
     mastered: Set<String>,
@@ -1851,7 +2289,7 @@ private suspend fun fetchTeacherAnswer(
             StandardCharsets.UTF_8.name(),
         )
         val path = "/topics/$topicId/teacher-answer?age=12&question=$query&mastered=$memory"
-        JSONObject(fetch(path))
+        JSONObject(fetch(baseUrl, path))
             .optString("answer")
     }
 
@@ -1911,8 +2349,24 @@ private fun saveMastered(context: Context, value: Set<String>) {
         .apply()
 }
 
-private fun fetch(path: String): String {
-    val connection = URL(API_BASE_URL + path).openConnection() as HttpURLConnection
+private fun loadApiBaseUrl(context: Context): String =
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getString(API_BASE_URL_PREF, DEFAULT_API_BASE_URL)
+        .orEmpty()
+        .ifBlank { DEFAULT_API_BASE_URL }
+
+private fun saveApiBaseUrl(context: Context, value: String) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putString(API_BASE_URL_PREF, value)
+        .apply()
+}
+
+private fun normalizeBaseUrl(value: String): String =
+    value.trim().trimEnd('/').ifBlank { DEFAULT_API_BASE_URL }
+
+private fun fetch(baseUrl: String, path: String): String {
+    val connection = URL(normalizeBaseUrl(baseUrl) + path).openConnection() as HttpURLConnection
     return try {
         connection.connectTimeout = 3000
         connection.readTimeout = 3000
