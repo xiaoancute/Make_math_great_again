@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.116.0",
     "networkx>=3.5",
+    "openai>=2.0.0",
     "pydantic>=2.11.0",
     "uvicorn[standard]>=0.35.0",
 ]

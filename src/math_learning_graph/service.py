@@ -8,7 +8,9 @@ from math_learning_graph.models import (
     RoadmapItem,
     TeacherAnswerResponse,
     TeacherPromptResponse,
+    TopicMemoryInput,
 )
+from math_learning_graph.openai_teacher import TeacherClient, openai_teacher_from_env
 from math_learning_graph.seed import (
     load_domain_overviews,
     load_knowledge_points,
@@ -23,18 +25,21 @@ class MathLearningService:
         graph: KnowledgeGraph,
         domains: list[DomainOverview],
         roadmap: list[RoadmapItem],
+        ai_teacher: TeacherClient | None = None,
     ) -> None:
         self._graph = graph
         self._domains = domains
         self._roadmap = roadmap
+        self._ai_teacher = ai_teacher
 
     @classmethod
-    def create_default(cls) -> MathLearningService:
+    def create_default(cls, ai_teacher: TeacherClient | None = None) -> MathLearningService:
         points = load_knowledge_points()
         return cls(
             graph=KnowledgeGraph.from_points(points),
             domains=load_domain_overviews(),
             roadmap=load_roadmap_items(),
+            ai_teacher=ai_teacher if ai_teacher is not None else openai_teacher_from_env(),
         )
 
     def list_domains(self) -> list[DomainOverview]:
@@ -79,10 +84,33 @@ class MathLearningService:
         student_age: int,
         question: str,
         mastered_topic_ids: set[str] | None = None,
+        memory_records: list[TopicMemoryInput] | None = None,
+        model: str | None = None,
     ) -> TeacherAnswerResponse:
         point = self.get_topic(topic_id)
         mastered_topic_ids = mastered_topic_ids or set()
         profile = self.learning_profile(topic_id, mastered_topic_ids)
+        prompt = build_teacher_prompt(
+            point,
+            student_age=student_age,
+            question=question,
+            learning_profile=profile,
+            topic_names=self._topic_names(),
+            memory_records=memory_records or [],
+        )
+        request_teacher = openai_teacher_from_env(model)
+        ai_teacher = request_teacher or self._ai_teacher
+        if ai_teacher is not None:
+            try:
+                answer = ai_teacher.generate_answer(prompt)
+                if answer:
+                    return TeacherAnswerResponse(
+                        topic_id=topic_id,
+                        answer=answer,
+                        learning_profile=profile,
+                    )
+            except Exception:
+                pass
         return TeacherAnswerResponse(
             topic_id=topic_id,
             answer=build_teacher_answer(
@@ -91,6 +119,7 @@ class MathLearningService:
                 question=question,
                 learning_profile=profile,
                 topic_names=self._topic_names(),
+                memory_records=memory_records or [],
             ),
             learning_profile=profile,
         )

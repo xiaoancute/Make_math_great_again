@@ -7,6 +7,7 @@ from math_learning_graph.models import (
     KnowledgePoint,
     LearningProfile,
     RoadmapItem,
+    TeacherAnswerRequest,
     TeacherAnswerResponse,
     TeacherPromptResponse,
 )
@@ -74,6 +75,23 @@ def create_app() -> FastAPI:
                 student_age=age,
                 question=question,
                 mastered_topic_ids=_parse_mastered_ids(mastered),
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/topics/{topic_id}/teacher-answer", response_model=TeacherAnswerResponse)
+    def post_teacher_answer(
+        topic_id: str,
+        request: TeacherAnswerRequest,
+    ) -> TeacherAnswerResponse:
+        try:
+            return service.teacher_answer(
+                topic_id,
+                student_age=request.age,
+                question=request.question,
+                mastered_topic_ids=set(request.mastered),
+                memory_records=request.memories,
+                model=request.model,
             )
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc

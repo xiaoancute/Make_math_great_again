@@ -102,3 +102,24 @@ class TeacherAnswerResponse(BaseModel):
     topic_id: str
     answer: str
     learning_profile: LearningProfile | None = None
+
+
+class TopicMemoryInput(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    topic_id: str
+    mastery_level: int = Field(ge=0, le=5)
+    review_count: int = Field(default=0, ge=0)
+    lapse_count: int = Field(default=0, ge=0)
+    last_reviewed_at: int | None = None
+    next_review_at: int | None = None
+
+
+class TeacherAnswerRequest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    age: int = Field(ge=6, le=16)
+    question: str = Field(min_length=1)
+    model: str | None = None
+    mastered: list[str] = Field(default_factory=list)
+    memories: list[TopicMemoryInput] = Field(default_factory=list)

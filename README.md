@@ -17,3 +17,10 @@ The Android app lives in `android-app/`. It uses Kotlin, Jetpack Compose, and Ma
 The app keeps domain logic in the backend: it lists knowledge points, opens a detail page,
 saves locally marked mastered topics, shows prerequisite gaps, and asks the backend for a
 student-facing teacher answer.
+
+## AI teacher
+
+The backend uses a deterministic local teacher when no API key is configured. Set
+`OPENAI_API_KEY` to enable real model answers through the OpenAI Responses API. Set the
+model name in the Android settings screen, or set `OPENAI_MODEL` on the backend. The Android
+settings screen also accepts the backend host and port, for example `http://10.0.2.2:8000`.

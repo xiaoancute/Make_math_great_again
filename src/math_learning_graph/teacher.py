@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from math_learning_graph.models import KnowledgePoint, LearningProfile
+from math_learning_graph.models import KnowledgePoint, LearningProfile, TopicMemoryInput
 
 
 def _join_or_default(values: list[str], default: str) -> str:
@@ -15,6 +15,7 @@ def _topic_names(topic_ids: list[str], topic_names: dict[str, str]) -> list[str]
 def _learning_memory_text(
     learning_profile: LearningProfile | None,
     topic_names: dict[str, str] | None,
+    memory_records: list[TopicMemoryInput] | None = None,
 ) -> str:
     if learning_profile is None:
         return ""
@@ -32,10 +33,28 @@ def _learning_memory_text(
         _topic_names(learning_profile.future[:5], names),
         "暂无后续关联知识",
     )
+    memory_lines = _memory_record_lines(memory_records or [], names)
     return f"""你的掌握记录：
 - 已经懂：{mastered}
 - 可能要先补：{weak}
-- 后面会用到：{future}"""
+- 后面会用到：{future}
+- 本机复习记录：{memory_lines}"""
+
+
+def _memory_record_lines(
+    memory_records: list[TopicMemoryInput],
+    topic_names: dict[str, str],
+) -> str:
+    if not memory_records:
+        return "暂无更细的复习记录"
+    lines = []
+    for record in sorted(memory_records, key=lambda item: item.topic_id)[:12]:
+        name = topic_names.get(record.topic_id, record.topic_id)
+        lines.append(
+            f"{name}：掌握等级 {record.mastery_level}，"
+            f"复习 {record.review_count} 次，遗忘 {record.lapse_count} 次"
+        )
+    return "；".join(lines)
 
 
 def build_teacher_prompt(
@@ -44,6 +63,7 @@ def build_teacher_prompt(
     question: str,
     learning_profile: LearningProfile | None = None,
     topic_names: dict[str, str] | None = None,
+    memory_records: list[TopicMemoryInput] | None = None,
 ) -> str:
     route = " -> ".join(point.understanding_route)
     examples = "；".join(point.life_examples)
@@ -52,7 +72,7 @@ def build_teacher_prompt(
     terms = "；".join(
         f"{term}：{explanation}" for term, explanation in point.term_explanations.items()
     )
-    learning_memory = _learning_memory_text(learning_profile, topic_names)
+    learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
 
     return f"""你是一名面向{student_age}岁学生的数学老师。
 
@@ -90,6 +110,7 @@ def build_teacher_answer(
     question: str,
     learning_profile: LearningProfile | None = None,
     topic_names: dict[str, str] | None = None,
+    memory_records: list[TopicMemoryInput] | None = None,
 ) -> str:
     route = " -> ".join(point.understanding_route)
     terms = "\n".join(
@@ -108,7 +129,7 @@ def build_teacher_answer(
         point.visualization_methods,
         "先画图、列表或用实物摆出来。",
     )
-    learning_memory = _learning_memory_text(learning_profile, topic_names)
+    learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
 
     return f"""你问的是：{question}
 {learning_memory}

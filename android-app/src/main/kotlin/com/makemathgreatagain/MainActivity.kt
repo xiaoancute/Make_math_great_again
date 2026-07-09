@@ -76,13 +76,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 private const val PREFS = "math_learning"
 private const val LEGACY_MASTERED_TOPICS = "mastered_topics"
 private const val TOPIC_MEMORIES = "topic_memories"
 private const val API_BASE_URL_PREF = "api_base_url"
+private const val AI_MODEL_PREF = "ai_model"
 private const val DEFAULT_API_BASE_URL = "http://10.0.2.2:8000"
 private const val OFFLINE_TOPICS_ASSET = "topics.json"
 private const val DAY_MS = 24L * 60L * 60L * 1000L
@@ -167,6 +167,7 @@ private data class UiState(
     val memories: Map<String, TopicMemory> = emptyMap(),
     val answer: String = "",
     val apiBaseUrl: String = DEFAULT_API_BASE_URL,
+    val aiModel: String = "",
     val dataSource: String = "本机离线",
     val syncWarning: String? = null,
 ) {
@@ -205,6 +206,7 @@ private fun MmgaApp() {
                 topics = offlineTopics,
                 memories = loadTopicMemories(context),
                 apiBaseUrl = loadApiBaseUrl(context),
+                aiModel = loadAiModel(context),
             ),
         )
     }
@@ -268,7 +270,9 @@ private fun MmgaApp() {
                                 state.apiBaseUrl,
                                 topic.id,
                                 question,
+                                state.aiModel,
                                 state.mastered,
+                                state.memories.values.toList(),
                             ),
                         )
                     } catch (_: Exception) {
@@ -283,6 +287,11 @@ private fun MmgaApp() {
                     saveApiBaseUrl(context, normalized)
                     state = state.copy(apiBaseUrl = normalized)
                     scope.launch { loadTopics(normalized) }
+                },
+                onSaveAiModel = { model ->
+                    val normalized = model.trim()
+                    saveAiModel(context, normalized)
+                    state = state.copy(aiModel = normalized)
                 },
             )
         }
@@ -300,6 +309,7 @@ private fun AppScreen(
     onMarkNeedsWork: (Topic) -> Unit,
     onAsk: suspend (Topic, String) -> Unit,
     onSaveApiBaseUrl: (String) -> Unit,
+    onSaveAiModel: (String) -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.School) }
 
@@ -399,6 +409,7 @@ private fun AppScreen(
                     onReload = onReload,
                     onSelect = onSelect,
                     onSaveApiBaseUrl = onSaveApiBaseUrl,
+                    onSaveAiModel = onSaveAiModel,
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -864,10 +875,14 @@ private fun SettingsScreen(
     onReload: () -> Unit,
     onSelect: (Topic) -> Unit,
     onSaveApiBaseUrl: (String) -> Unit,
+    onSaveAiModel: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var apiBaseUrl by rememberSaveable(state.apiBaseUrl) {
         mutableStateOf(state.apiBaseUrl)
+    }
+    var aiModel by rememberSaveable(state.aiModel) {
+        mutableStateOf(state.aiModel)
     }
     val orderedTopics = state.topics.understandingOrdered()
     val openTopics = orderedTopics.filter { it.id !in state.mastered }
@@ -902,7 +917,15 @@ private fun SettingsScreen(
                     onValueChange = { apiBaseUrl = it },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    label = { Text("后端地址") },
+                    label = { Text("后端地址和端口") },
+                    shape = CardShape,
+                )
+                OutlinedTextField(
+                    value = aiModel,
+                    onValueChange = { aiModel = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("模型名称") },
                     shape = CardShape,
                 )
                 Row(
@@ -915,6 +938,14 @@ private fun SettingsScreen(
                         shape = CardShape,
                     ) {
                         Text("保存并同步")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { onSaveAiModel(aiModel) },
+                        enabled = aiModel.trim() != state.aiModel,
+                        shape = CardShape,
+                    ) {
+                        Text("保存模型")
                     }
                 }
                 SettingRow(
@@ -2006,16 +2037,18 @@ private suspend fun fetchTeacherAnswer(
     baseUrl: String,
     topicId: String,
     question: String,
+    model: String,
     mastered: Set<String>,
+    memories: List<TopicMemory>,
 ): String =
     withContext(Dispatchers.IO) {
-        val query = URLEncoder.encode(question, StandardCharsets.UTF_8.name())
-        val memory = URLEncoder.encode(
-            mastered.sorted().joinToString(","),
-            StandardCharsets.UTF_8.name(),
-        )
-        val path = "/topics/$topicId/teacher-answer?age=12&question=$query&mastered=$memory"
-        JSONObject(fetch(baseUrl, path))
+        val body = JSONObject()
+            .put("age", 12)
+            .put("question", question)
+            .put("model", model.trim())
+            .put("mastered", JSONArray(mastered.sorted()))
+            .put("memories", memories.sortedBy { it.topicId }.toRequestJsonArray())
+        JSONObject(post(baseUrl, "/topics/$topicId/teacher-answer", body.toString()))
             .optString("answer")
     }
 
@@ -2149,6 +2182,22 @@ private fun Collection<TopicMemory>.toJsonArray(): JSONArray {
     return array
 }
 
+private fun Collection<TopicMemory>.toRequestJsonArray(): JSONArray {
+    val array = JSONArray()
+    forEach { memory ->
+        array.put(
+            JSONObject()
+                .put("topic_id", memory.topicId)
+                .put("mastery_level", memory.masteryLevel)
+                .put("last_reviewed_at", memory.lastReviewedAt)
+                .put("next_review_at", memory.nextReviewAt)
+                .put("review_count", memory.reviewCount)
+                .put("lapse_count", memory.lapseCount),
+        )
+    }
+    return array
+}
+
 private fun TopicMemory?.markUnderstood(topicId: String): TopicMemory {
     val now = System.currentTimeMillis()
     val previous = this
@@ -2210,6 +2259,18 @@ private fun saveApiBaseUrl(context: Context, value: String) {
         .apply()
 }
 
+private fun loadAiModel(context: Context): String =
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getString(AI_MODEL_PREF, "")
+        .orEmpty()
+
+private fun saveAiModel(context: Context, value: String) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putString(AI_MODEL_PREF, value)
+        .apply()
+}
+
 private fun normalizeBaseUrl(value: String): String =
     value.trim().trimEnd('/').ifBlank { DEFAULT_API_BASE_URL }
 
@@ -2219,6 +2280,24 @@ private fun fetch(baseUrl: String, path: String): String {
         connection.connectTimeout = 3000
         connection.readTimeout = 3000
         connection.requestMethod = "GET"
+        if (connection.responseCode >= 400) error("HTTP ${connection.responseCode}")
+        connection.inputStream.bufferedReader().use { it.readText() }
+    } finally {
+        connection.disconnect()
+    }
+}
+
+private fun post(baseUrl: String, path: String, body: String): String {
+    val connection = URL(normalizeBaseUrl(baseUrl) + path).openConnection() as HttpURLConnection
+    return try {
+        connection.connectTimeout = 3000
+        connection.readTimeout = 20000
+        connection.requestMethod = "POST"
+        connection.doOutput = true
+        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+        connection.outputStream.use { output ->
+            output.write(body.toByteArray(StandardCharsets.UTF_8))
+        }
         if (connection.responseCode >= 400) error("HTTP ${connection.responseCode}")
         connection.inputStream.bufferedReader().use { it.readText() }
     } finally {

@@ -107,3 +107,38 @@ def test_teacher_answer_endpoint_uses_mastered_learning_memory():
     assert "等式" in data["answer"]
     assert "四则运算" in data["answer"]
     assert "可能要先补" in data["answer"]
+
+
+def test_teacher_answer_post_endpoint_accepts_local_memory_records():
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/topics/linear_equation_one_variable/teacher-answer",
+        json={
+            "age": 12,
+            "question": "为什么移项要变号？",
+            "model": "test-model",
+            "mastered": ["equality"],
+            "memories": [
+                {
+                    "topic_id": "equality",
+                    "mastery_level": 3,
+                    "review_count": 2,
+                    "lapse_count": 0,
+                },
+                {
+                    "topic_id": "transposition",
+                    "mastery_level": 1,
+                    "review_count": 0,
+                    "lapse_count": 2,
+                },
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["topic_id"] == "linear_equation_one_variable"
+    assert "本机复习记录" in data["answer"]
+    assert "移项" in data["answer"]
+    assert "遗忘 2 次" in data["answer"]
