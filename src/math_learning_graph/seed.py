@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from math_learning_graph.curriculum_seed import load_curriculum_knowledge_points
 from math_learning_graph.depth import with_deep_scaffold
+from math_learning_graph.high_school_seed import load_high_school_knowledge_points
 from math_learning_graph.models import (
     DomainOverview,
     GradeBand,
@@ -186,6 +187,62 @@ def load_roadmap_items() -> list[RoadmapItem]:
             core_topic_ids=[],
             prerequisite_topic_ids=["fraction"],
             early_intuition="概率是在描述可能性，分数是它最早的语言。",
+        ),
+        RoadmapItem(
+            id="high_school_function_path",
+            name="高中函数主线",
+            domain=MathDomain.FUNCTIONS,
+            stage=GradeBand.SENIOR,
+            core_topic_ids=[
+                "set_concept",
+                "function_properties_high_school",
+                "exponential_logarithmic_functions",
+                "trigonometric_functions",
+                "derivative_intro",
+            ],
+            prerequisite_topic_ids=["function_intro", "quadratic_function"],
+            next_item_ids=["high_school_calculus_path"],
+            is_breakpoint=True,
+            early_intuition="高中函数先说清楚输入范围，再研究整体变化、周期变化和瞬时变化。",
+        ),
+        RoadmapItem(
+            id="high_school_geometry_path",
+            name="高中几何与向量",
+            domain=MathDomain.GEOMETRY,
+            stage=GradeBand.SENIOR,
+            core_topic_ids=[
+                "plane_vectors",
+                "solid_geometry_spatial_relations",
+                "space_vectors",
+                "conic_sections",
+            ],
+            prerequisite_topic_ids=["coordinate_plane", "volume"],
+            is_breakpoint=True,
+            early_intuition="高中几何会把图形关系翻译成向量、坐标和方程。",
+        ),
+        RoadmapItem(
+            id="high_school_probability_path",
+            name="高中计数、概率与统计",
+            domain=MathDomain.STATISTICS_PROBABILITY,
+            stage=GradeBand.SENIOR,
+            core_topic_ids=[
+                "probability_high_school",
+                "counting_principle",
+                "random_variables",
+                "normal_distribution",
+            ],
+            prerequisite_topic_ids=["probability", "data_analysis"],
+            early_intuition="高中概率先把可能情况数清楚，再研究随机结果的分布。",
+        ),
+        RoadmapItem(
+            id="high_school_calculus_path",
+            name="导数与函数研究",
+            domain=MathDomain.FUNCTIONS,
+            stage=GradeBand.SENIOR,
+            core_topic_ids=["derivative_intro", "derivative_applications"],
+            prerequisite_topic_ids=["function_properties_high_school"],
+            is_breakpoint=True,
+            early_intuition="导数是在问变化有多快，用来判断函数增减、最值和图像形状。",
         ),
     ]
 
@@ -680,7 +737,11 @@ def load_knowledge_points() -> list[KnowledgePoint]:
 
     return [
         with_deep_scaffold(point)
-        for point in [*core_points, *load_curriculum_knowledge_points()]
+        for point in [
+            *core_points,
+            *load_curriculum_knowledge_points(),
+            *load_high_school_knowledge_points(),
+        ]
     ]
 
 

@@ -1937,6 +1937,7 @@ private fun Topic.stageLabel(): String = when (gradeBand) {
     "primary" -> "小学会学"
     "junior" -> "初中会学"
     "primary_to_junior" -> "小初衔接会用"
+    "senior" -> "高中会学"
     else -> gradeBand.ifBlank { "校内知识" }
 }
 
@@ -2017,8 +2018,12 @@ private fun List<Topic>.gradeBuckets(): List<GradeBucket> {
         "七年级",
         "八年级",
         "九年级",
+        "高一",
+        "高二",
+        "高三",
         "小学",
         "初中",
+        "高中",
         "其他",
     )
     val grouped = groupBy { it.schoolGradeKey() }
@@ -2041,8 +2046,15 @@ private fun Topic.schoolGradeKey(): String {
         "七年级" in value -> "七年级"
         "八年级" in value -> "八年级"
         "九年级" in value -> "九年级"
+        "高中必修第一册" in value -> "高一"
+        "高中必修第二册" in value -> "高一"
+        "高中选择性必修第一册" in value -> "高二"
+        "高中选择性必修第二册" in value -> "高二"
+        "高中选择性必修第三册" in value -> "高三"
+        "高中" in value -> "高中"
         gradeBand == "primary" -> "小学"
         gradeBand == "junior" -> "初中"
+        gradeBand == "senior" -> "高中"
         else -> "其他"
     }
 }
@@ -2088,6 +2100,12 @@ private fun String?.gradeOrder(): Int {
         "七年级" in value -> 7
         "八年级" in value -> 8
         "九年级" in value -> 9
+        "高中必修第一册" in value -> 10
+        "高中必修第二册" in value -> 11
+        "高中选择性必修第一册" in value -> 12
+        "高中选择性必修第二册" in value -> 13
+        "高中选择性必修第三册" in value -> 14
+        "高中" in value -> 10
         "小学" in value -> 3
         "初中" in value -> 7
         else -> 99

@@ -46,6 +46,56 @@ def test_service_includes_first_batch_textbook_detail_nodes():
     assert "function_graph_reading" in topic_ids
 
 
+def test_service_includes_high_school_textbook_nodes():
+    service = MathLearningService.create_default()
+
+    topics = service.list_topics()
+    topic_ids = {topic.id for topic in topics}
+    high_school_topics = [topic for topic in topics if topic.grade_band == "senior"]
+
+    assert len(high_school_topics) >= 30
+    assert {
+        "set_concept",
+        "function_properties_high_school",
+        "trigonometric_functions",
+        "sequence_arithmetic",
+        "solid_geometry_spatial_relations",
+        "conic_sections",
+        "derivative_intro",
+        "counting_principle",
+        "normal_distribution",
+    }.issubset(topic_ids)
+    assert any(
+        position.grade == "高中必修第一册"
+        for topic in topics
+        for position in topic.textbook_positions
+    )
+    assert any(
+        position.grade == "高中选择性必修第三册"
+        for topic in topics
+        for position in topic.textbook_positions
+    )
+
+
+def test_high_school_topics_do_not_assume_new_terms_are_known():
+    service = MathLearningService.create_default()
+
+    high_school_topics = [topic for topic in service.list_topics() if topic.grade_band == "senior"]
+
+    assert high_school_topics
+    assert all(topic.term_explanations for topic in high_school_topics)
+    assert all(len(topic.term_explanations) >= 3 for topic in high_school_topics)
+    assert all("先把词说清楚" in topic.conceptual_layers[0] for topic in high_school_topics)
+    assert all(
+        any(
+            "这个符号" in step or "这个词" in step
+            for example in topic.worked_examples
+            for step in example.steps
+        )
+        for topic in high_school_topics
+    )
+
+
 def test_all_topics_include_deep_learning_scaffold():
     service = MathLearningService.create_default()
 

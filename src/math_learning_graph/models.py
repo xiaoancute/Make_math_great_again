@@ -9,6 +9,7 @@ class GradeBand(StrEnum):
     PRIMARY = "primary"
     JUNIOR = "junior"
     BRIDGE = "primary_to_junior"
+    SENIOR = "senior"
 
 
 class MathDomain(StrEnum):
