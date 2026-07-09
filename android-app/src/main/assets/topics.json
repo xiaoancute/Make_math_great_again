@@ -1,0 +1,4387 @@
+[
+  {
+    "id": "equality",
+    "name": "等式",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "小学四年级",
+        "chapter": "简易方程准备",
+        "section": "等量关系"
+      }
+    ],
+    "human_explanation": "等式就是两边表示同样多，像天平保持平衡。",
+    "life_examples": [
+      "两袋苹果一样重",
+      "5元加3元和8元一样多"
+    ],
+    "why_needed": "方程和代数推理都要依赖两边保持相等这个想法。",
+    "formal_definition": "用等号连接、表示左右两个式子值相等的式子叫等式。",
+    "term_explanations": {
+      "等号": "表示左右两边一样多的符号。",
+      "式子": "由数、符号或字母组成的一段数学表达。"
+    },
+    "misconceptions": [
+      "把等号看成计算结果提示，而不是两边关系。"
+    ],
+    "prerequisite_ids": [],
+    "next_ids": [],
+    "formulas": [],
+    "visualization_methods": [
+      "天平模型",
+      "左右两边数量条"
+    ],
+    "ai_teaching_hints": [
+      "先用天平解释相等，再引入等号。"
+    ],
+    "exercise_types": [
+      "判断等式",
+      "补全等量关系"
+    ],
+    "school_route": [
+      "小学",
+      "数与代数",
+      "等量关系"
+    ],
+    "understanding_route": [
+      "同样多",
+      "两边平衡",
+      "等号",
+      "等式"
+    ]
+  },
+  {
+    "id": "arithmetic_operations",
+    "name": "四则运算",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "小学三至四年级",
+        "chapter": "数的运算",
+        "section": "加减乘除"
+      }
+    ],
+    "human_explanation": "四则运算是把数量合起来、拿走、成组增加或平均分。",
+    "life_examples": [
+      "买东西合计价格",
+      "把糖果平均分给朋友"
+    ],
+    "why_needed": "后续分数、方程、函数都要把数量关系写成运算。",
+    "formal_definition": "加法、减法、乘法、除法及其运算规则共同构成四则运算。",
+    "term_explanations": {
+      "运算": "对数量做动作，比如合起来、拿走、成组或平均分。",
+      "规则": "大家约定好的计算办法。"
+    },
+    "misconceptions": [
+      "只记步骤，不理解每种运算对应的数量动作。"
+    ],
+    "prerequisite_ids": [],
+    "next_ids": [],
+    "formulas": [],
+    "visualization_methods": [
+      "数轴",
+      "阵列图",
+      "平均分模型"
+    ],
+    "ai_teaching_hints": [
+      "把运算还原成数量动作。"
+    ],
+    "exercise_types": [
+      "口算",
+      "混合运算",
+      "现实问题列式"
+    ],
+    "school_route": [
+      "小学",
+      "数与代数",
+      "四则运算"
+    ],
+    "understanding_route": [
+      "数量变化",
+      "合并和分开",
+      "成组",
+      "平均分"
+    ]
+  },
+  {
+    "id": "number_recognition",
+    "name": "数的认识",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "一年级上册",
+        "chapter": "准备课与位置",
+        "section": "数一数"
+      }
+    ],
+    "human_explanation": "数是用来回答“有多少”的工具。",
+    "life_examples": [
+      "数铅笔",
+      "数台阶"
+    ],
+    "why_needed": "后面所有计算、测量和比较都要先知道数在表示什么。",
+    "formal_definition": "数是用来回答“有多少”的工具。",
+    "term_explanations": {
+      "数": "表示多少的记号。",
+      "计数": "一个一个对应着数出来。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [],
+    "next_ids": [
+      "place_value_decimal_system",
+      "integer_addition_subtraction"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "实物计数",
+      "点子图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "一年级上册",
+      "准备课与位置",
+      "数一数"
+    ],
+    "understanding_route": [
+      "一个物体对应一个数",
+      "数的顺序",
+      "多少",
+      "数字记号"
+    ]
+  },
+  {
+    "id": "distributive_property",
+    "name": "分配律",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "小学四年级",
+        "chapter": "运算律",
+        "section": "乘法分配律"
+      }
+    ],
+    "human_explanation": "分配律说明先拆开再分别乘，和先合起来再乘一样。",
+    "life_examples": [
+      "3盒彩笔和2盒彩笔，每盒12支，一共还是5盒12支"
+    ],
+    "why_needed": "化简式子、解方程和理解面积公式都常用它。",
+    "formal_definition": "a x (b + c) = a x b + a x c。",
+    "term_explanations": {
+      "分配": "把一个整体拆成几份后分别处理。",
+      "括号": "把里面的内容先看成一个整体的符号。"
+    },
+    "misconceptions": [
+      "只会套公式，不知道它来自面积或分组。"
+    ],
+    "prerequisite_ids": [
+      "arithmetic_operations"
+    ],
+    "next_ids": [
+      "linear_equation_one_variable"
+    ],
+    "formulas": [
+      "a x (b + c) = a x b + a x c"
+    ],
+    "visualization_methods": [
+      "矩形面积拆分图",
+      "盒装物品分组图"
+    ],
+    "ai_teaching_hints": [
+      "先画一个被切开的长方形，再写符号。"
+    ],
+    "exercise_types": [
+      "拆括号",
+      "提公因数",
+      "面积模型解释"
+    ],
+    "school_route": [
+      "小学",
+      "数与代数",
+      "运算律"
+    ],
+    "understanding_route": [
+      "成组数量",
+      "拆开计算",
+      "面积拆分",
+      "符号表达"
+    ]
+  },
+  {
+    "id": "fraction",
+    "name": "分数",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "小学三至五年级",
+        "chapter": "分数的认识",
+        "section": "几分之一与几分之几"
+      }
+    ],
+    "human_explanation": "分数表示把一个整体平均分后取其中几份。",
+    "life_examples": [
+      "半块蛋糕",
+      "四分之三杯水"
+    ],
+    "why_needed": "比例、百分数、概率和代数式都需要表达不是整数的量。",
+    "formal_definition": "形如 a/b 的数表示把单位1平均分成b份后取a份，b不为0。",
+    "term_explanations": {
+      "单位1": "这次被当作一个完整整体的东西。",
+      "平均分": "每一份大小一样。",
+      "分母": "表示整体被平均分成几份的数。",
+      "分子": "表示取了其中几份的数。"
+    },
+    "misconceptions": [
+      "只看上下两个数，不理解单位1和平均分。"
+    ],
+    "prerequisite_ids": [
+      "arithmetic_operations"
+    ],
+    "next_ids": [
+      "ratio"
+    ],
+    "formulas": [
+      "a/b"
+    ],
+    "visualization_methods": [
+      "面积模型",
+      "数轴",
+      "集合模型"
+    ],
+    "ai_teaching_hints": [
+      "先确认单位1，再讨论分母和分子。"
+    ],
+    "exercise_types": [
+      "识别单位1",
+      "分数大小比较",
+      "分数运算"
+    ],
+    "school_route": [
+      "小学",
+      "数与代数",
+      "分数"
+    ],
+    "understanding_route": [
+      "整体",
+      "平均分",
+      "取几份",
+      "分数符号"
+    ]
+  },
+  {
+    "id": "quantity_relationship",
+    "name": "数量关系",
+    "grade_band": "primary_to_junior",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "小学高年级至初一",
+        "chapter": "式与方程",
+        "section": "用字母表示数"
+      }
+    ],
+    "human_explanation": "数量关系是在说两个或多个数量怎样互相影响。",
+    "life_examples": [
+      "路程会随着时间增加",
+      "总价会随着数量增加"
+    ],
+    "why_needed": "函数、方程和应用题建模都从发现数量关系开始。",
+    "formal_definition": "数量关系是变量或已知量之间可用语言、表格、图像或式子描述的对应规则。",
+    "term_explanations": {
+      "数量": "可以数出来或量出来的多少。",
+      "关系": "几个数量之间互相影响的方式。",
+      "变量": "会变化的数量。"
+    },
+    "misconceptions": [
+      "把应用题当关键词匹配，而不是找量之间的关系。"
+    ],
+    "prerequisite_ids": [
+      "arithmetic_operations"
+    ],
+    "next_ids": [
+      "function_intro",
+      "linear_equation_one_variable"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "关系表",
+      "箭头图",
+      "线段图"
+    ],
+    "ai_teaching_hints": [
+      "先问哪些量会变，再问谁影响谁。"
+    ],
+    "exercise_types": [
+      "找已知量和未知量",
+      "用表格整理关系"
+    ],
+    "school_route": [
+      "小学到初中",
+      "数与代数",
+      "数量关系"
+    ],
+    "understanding_route": [
+      "生活变化",
+      "两个量",
+      "影响关系",
+      "表达关系"
+    ]
+  },
+  {
+    "id": "transposition",
+    "name": "移项",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "七年级",
+        "chapter": "一元一次方程",
+        "section": "解一元一次方程"
+      }
+    ],
+    "human_explanation": "移项不是把数随便搬家，而是在等式两边做同样操作后的简写。",
+    "life_examples": [
+      "天平两边同时拿走同样重的砝码"
+    ],
+    "why_needed": "解方程时要把含未知数的项和常数项整理到合适的位置。",
+    "formal_definition": "等式中某一项从一边移到另一边并改变符号，是等式同解变形的简写。",
+    "term_explanations": {
+      "项": "式子里用加号或减号分开的每一块。",
+      "变号": "加变成减，或减变成加。",
+      "同解": "变形前后能让方程成立的答案一样。"
+    },
+    "misconceptions": [
+      "移动时忘记变号",
+      "以为移项是独立规则，不理解来自等式性质。"
+    ],
+    "prerequisite_ids": [
+      "equality",
+      "arithmetic_operations"
+    ],
+    "next_ids": [
+      "linear_equation_one_variable"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "天平变形",
+      "左右式子颜色标注"
+    ],
+    "ai_teaching_hints": [
+      "每次移项都还原成两边同时加减同一项。"
+    ],
+    "exercise_types": [
+      "移项变形",
+      "判断等价变形"
+    ],
+    "school_route": [
+      "初中",
+      "方程",
+      "一元一次方程"
+    ],
+    "understanding_route": [
+      "等式平衡",
+      "两边同操作",
+      "整理未知数",
+      "移项简写"
+    ]
+  },
+  {
+    "id": "place_value_decimal_system",
+    "name": "十进制与位值",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "一年级下册至四年级上册",
+        "chapter": "100以内数的认识 / 大数的认识",
+        "section": "数位与计数单位"
+      }
+    ],
+    "human_explanation": "同一个数字放在不同位置，表示的大小不一样。",
+    "life_examples": [
+      "23里的2表示2个十",
+      "305里的0表示十位没有"
+    ],
+    "why_needed": "多位数、小数、竖式计算都靠位值来保证不乱。",
+    "formal_definition": "同一个数字放在不同位置，表示的大小不一样。",
+    "term_explanations": {
+      "数位": "数字所在的位置。",
+      "计数单位": "一、十、百、千这样的单位。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "number_recognition"
+    ],
+    "next_ids": [
+      "decimal",
+      "integer_addition_subtraction"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数位表",
+      "小棒捆扎"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "一年级下册至四年级上册",
+      "100以内数的认识 / 大数的认识",
+      "数位与计数单位"
+    ],
+    "understanding_route": [
+      "一捆十个",
+      "十个十是一百",
+      "位置不同",
+      "值不同"
+    ]
+  },
+  {
+    "id": "negative_number_intro",
+    "name": "负数初步",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "六年级下册",
+        "chapter": "负数",
+        "section": "正负数表示相反意义的量"
+      }
+    ],
+    "human_explanation": "负数用来表示和正方向相反的量。",
+    "life_examples": [
+      "零上和零下",
+      "收入和支出"
+    ],
+    "why_needed": "初中有理数、坐标系、不等式都要用负数。",
+    "formal_definition": "负数用来表示和正方向相反的量。",
+    "term_explanations": {
+      "正方向": "事先规定为正的方向。",
+      "相反意义": "比如高于和低于、收入和支出。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "number_recognition"
+    ],
+    "next_ids": [
+      "rational_numbers",
+      "coordinate_plane"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "温度计",
+      "数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "六年级下册",
+      "负数",
+      "正负数表示相反意义的量"
+    ],
+    "understanding_route": [
+      "相反意义",
+      "0作分界",
+      "正数",
+      "负数",
+      "数轴"
+    ]
+  },
+  {
+    "id": "number_comparison",
+    "name": "数的大小比较",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "一年级上册至二年级下册",
+        "chapter": "数的认识",
+        "section": "比较多少与大小"
+      }
+    ],
+    "human_explanation": "比较大小是在判断两个数量谁多、谁少，或者在数轴上谁更靠后。",
+    "life_examples": [
+      "比较两盒彩笔谁多",
+      "按身高排队"
+    ],
+    "why_needed": "后面估算、排序、分数小数比较和不等式都要先会比较。",
+    "formal_definition": "比较大小是在判断两个数量谁多、谁少，或者在数轴上谁更靠后。",
+    "term_explanations": {
+      "大于": "比另一个数多。",
+      "小于": "比另一个数少。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "number_recognition"
+    ],
+    "next_ids": [
+      "place_value_decimal_system",
+      "inequalities"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "点子图",
+      "数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "一年级上册至二年级下册",
+      "数的认识",
+      "比较多少与大小"
+    ],
+    "understanding_route": [
+      "一一对应",
+      "多少",
+      "数轴位置",
+      "大于小于符号"
+    ]
+  },
+  {
+    "id": "linear_equation_one_variable",
+    "name": "一元一次方程",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "七年级",
+        "chapter": "一元一次方程",
+        "section": "方程与解法"
+      }
+    ],
+    "human_explanation": "一元一次方程就是只有一个未知数，而且未知数只出现一次方的等量关系。",
+    "life_examples": [
+      "已知总价和单价，求买了多少件"
+    ],
+    "why_needed": "它是从算术问题进入代数建模的第一道门。",
+    "formal_definition": "只含一个未知数，未知数次数为1，且可化为 ax + b = 0 的整式方程叫一元一次方程。",
+    "term_explanations": {
+      "未知数": "现在不知道、需要求出来的数。",
+      "一元": "只有一个未知数。",
+      "一次": "未知数没有平方、立方，只是普通的一次。",
+      "方程": "含有未知数的等式。"
+    },
+    "misconceptions": [
+      "把含一个字母的式子都当方程",
+      "不知道方程的解是让等式成立的值。"
+    ],
+    "prerequisite_ids": [
+      "equality",
+      "arithmetic_operations",
+      "distributive_property",
+      "quantity_relationship",
+      "transposition"
+    ],
+    "next_ids": [
+      "linear_equation_two_variables",
+      "function_intro"
+    ],
+    "formulas": [
+      "ax + b = 0"
+    ],
+    "visualization_methods": [
+      "天平模型",
+      "线段图",
+      "步骤树"
+    ],
+    "ai_teaching_hints": [
+      "先让学生说出未知量，再把数量关系翻译成等式。"
+    ],
+    "exercise_types": [
+      "列方程",
+      "解方程",
+      "检验解"
+    ],
+    "school_route": [
+      "初中",
+      "方程",
+      "一元一次方程"
+    ],
+    "understanding_route": [
+      "未知数",
+      "等量关系",
+      "列式",
+      "等式变形",
+      "求解"
+    ]
+  },
+  {
+    "id": "integer_addition_subtraction",
+    "name": "整数加减法",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "一年级上册至三年级上册",
+        "chapter": "加法和减法",
+        "section": "进位、退位与竖式"
+      }
+    ],
+    "human_explanation": "加法是在合起来，减法是在拿走或比较差多少。",
+    "life_examples": [
+      "一共有多少本书",
+      "还剩多少个苹果"
+    ],
+    "why_needed": "这是理解数量变化和后续四则混合运算的入口。",
+    "formal_definition": "加法是在合起来，减法是在拿走或比较差多少。",
+    "term_explanations": {
+      "进位": "某一位满十后换成高一位的一个。",
+      "退位": "从高一位拆一个十来用。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "place_value_decimal_system"
+    ],
+    "next_ids": [
+      "arithmetic_operations",
+      "mixed_operations"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数轴",
+      "计数器"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "一年级上册至三年级上册",
+      "加法和减法",
+      "进位、退位与竖式"
+    ],
+    "understanding_route": [
+      "合并或拿走",
+      "按位对齐",
+      "满十进一",
+      "不够退一"
+    ]
+  },
+  {
+    "id": "measurement_units",
+    "name": "常见量与单位",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级上册至三年级上册",
+        "chapter": "长度单位 / 时、分、秒 / 质量单位",
+        "section": "单位认识与换算"
+      }
+    ],
+    "human_explanation": "单位是在说明这个数到底数的是什么。",
+    "life_examples": [
+      "3米和3厘米不是一回事",
+      "1小时等于60分钟"
+    ],
+    "why_needed": "没有单位，测量、面积、速度和应用题都会失去意义。",
+    "formal_definition": "单位是在说明这个数到底数的是什么。",
+    "term_explanations": {
+      "单位": "约定好的测量标准。",
+      "换算": "用不同单位表示同一个量。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "number_recognition",
+      "place_value_decimal_system"
+    ],
+    "next_ids": [
+      "perimeter",
+      "area",
+      "volume"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "尺子",
+      "钟表",
+      "天平"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级上册至三年级上册",
+      "长度单位 / 时、分、秒 / 质量单位",
+      "单位认识与换算"
+    ],
+    "understanding_route": [
+      "量什么",
+      "选单位",
+      "读数",
+      "换算",
+      "检验是否合理"
+    ]
+  },
+  {
+    "id": "rounding_estimation",
+    "name": "估算与近似数",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级下册至四年级上册",
+        "chapter": "万以内数的认识 / 大数的认识",
+        "section": "近似数和估算"
+      }
+    ],
+    "human_explanation": "估算是先得到一个接近真实结果、方便判断的数。",
+    "life_examples": [
+      "估一下一箱书大约多重",
+      "判断计算结果是不是离谱"
+    ],
+    "why_needed": "学生做应用题和复杂计算时，需要先判断答案是否合理。",
+    "formal_definition": "估算是先得到一个接近真实结果、方便判断的数。",
+    "term_explanations": {
+      "近似数": "接近准确值、方便使用的数。",
+      "四舍五入": "按后一位决定保留位是否进一。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "place_value_decimal_system",
+      "number_comparison"
+    ],
+    "next_ids": [
+      "decimal_operations",
+      "data_analysis"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数轴",
+      "区间条"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级下册至四年级上册",
+      "万以内数的认识 / 大数的认识",
+      "近似数和估算"
+    ],
+    "understanding_route": [
+      "准确数",
+      "接近",
+      "保留到某一位",
+      "估算检验"
+    ]
+  },
+  {
+    "id": "linear_equation_two_variables",
+    "name": "二元一次方程",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "七年级至八年级",
+        "chapter": "二元一次方程组",
+        "section": "二元一次方程"
+      }
+    ],
+    "human_explanation": "二元一次方程表示两个未知量之间的一条一次关系。",
+    "life_examples": [
+      "鸡兔同笼中鸡和兔的数量关系"
+    ],
+    "why_needed": "它连接方程组、坐标图像和一次函数。",
+    "formal_definition": "含有两个未知数，且含未知数的项次数都是1的整式方程叫二元一次方程。",
+    "term_explanations": {
+      "二元": "有两个未知数。",
+      "解": "能让方程成立的未知数取值。",
+      "方程组": "几个方程放在一起，同时要求成立。"
+    },
+    "misconceptions": [
+      "以为有两个未知数就一定不能解",
+      "不理解一个方程通常对应很多组解。"
+    ],
+    "prerequisite_ids": [
+      "linear_equation_one_variable"
+    ],
+    "next_ids": [
+      "function_intro"
+    ],
+    "formulas": [
+      "ax + by = c"
+    ],
+    "visualization_methods": [
+      "解的表格",
+      "坐标系中的直线"
+    ],
+    "ai_teaching_hints": [
+      "先用表格列出多组可行解，再过渡到直线图像。"
+    ],
+    "exercise_types": [
+      "找整数解",
+      "方程组建模",
+      "图像理解"
+    ],
+    "school_route": [
+      "初中",
+      "方程",
+      "二元一次方程组"
+    ],
+    "understanding_route": [
+      "两个未知数",
+      "多组解",
+      "表格",
+      "图像直线"
+    ]
+  },
+  {
+    "id": "linear_equation_applications",
+    "name": "一元一次方程应用",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第三章 一元一次方程",
+        "section": "实际问题与一元一次方程"
+      }
+    ],
+    "human_explanation": "方程应用是在把现实条件翻译成一个能求未知数的等式。",
+    "life_examples": [
+      "打折销售",
+      "工程合作",
+      "行程追及"
+    ],
+    "why_needed": "学生不会应用题时，常卡在找量和关系，而不是卡在计算。",
+    "formal_definition": "方程应用是在把现实条件翻译成一个能求未知数的等式。",
+    "term_explanations": {
+      "设未知数": "先给不知道的量起一个字母名字。",
+      "检验": "把答案放回原题检查。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "linear_equation_one_variable",
+      "quantity_relationship"
+    ],
+    "next_ids": [
+      "linear_equation_systems",
+      "linear_function"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "表格",
+      "线段图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第三章 一元一次方程",
+      "实际问题与一元一次方程"
+    ],
+    "understanding_route": [
+      "读题",
+      "找量",
+      "设未知数",
+      "列等式",
+      "解和检验"
+    ]
+  },
+  {
+    "id": "multiplication_meaning",
+    "name": "乘法的意义",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级上册",
+        "chapter": "表内乘法",
+        "section": "乘法的初步认识"
+      }
+    ],
+    "human_explanation": "乘法是在说几个相同的组一共有多少。",
+    "life_examples": [
+      "3盒彩笔，每盒6支",
+      "4排座位，每排8个"
+    ],
+    "why_needed": "面积、比例、函数里的倍数关系都从乘法意义长出来。",
+    "formal_definition": "乘法是在说几个相同的组一共有多少。",
+    "term_explanations": {
+      "几个几": "有几组，每组有同样多个。",
+      "因数": "参与相乘的数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "integer_addition_subtraction"
+    ],
+    "next_ids": [
+      "division_meaning",
+      "arithmetic_operations"
+    ],
+    "formulas": [
+      "a x b"
+    ],
+    "visualization_methods": [
+      "阵列图",
+      "分组图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级上册",
+      "表内乘法",
+      "乘法的初步认识"
+    ],
+    "understanding_route": [
+      "重复加法",
+      "相同组",
+      "几个几",
+      "乘法式子"
+    ]
+  },
+  {
+    "id": "line_angle_basic",
+    "name": "线与角",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级下册至四年级上册",
+        "chapter": "角的初步认识 / 角的度量",
+        "section": "线段、直线、射线和角"
+      }
+    ],
+    "human_explanation": "线描述位置和方向，角描述两条线张开的大小。",
+    "life_examples": [
+      "门打开的角度",
+      "道路的交叉"
+    ],
+    "why_needed": "平面图形、三角形、平行线和圆都需要线与角的语言。",
+    "formal_definition": "线描述位置和方向，角描述两条线张开的大小。",
+    "term_explanations": {
+      "线段": "有两个端点的一段直线。",
+      "角": "从同一点出发的两条射线形成的图形。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "measurement_units"
+    ],
+    "next_ids": [
+      "triangle_basic",
+      "parallel_lines"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "量角器",
+      "折纸"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级下册至四年级上册",
+      "角的初步认识 / 角的度量",
+      "线段、直线、射线和角"
+    ],
+    "understanding_route": [
+      "点",
+      "线段",
+      "射线",
+      "直线",
+      "角",
+      "度量"
+    ]
+  },
+  {
+    "id": "unit_conversion",
+    "name": "单位换算",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级上册至五年级下册",
+        "chapter": "常见量 / 面积单位 / 体积单位",
+        "section": "长度、质量、时间、面积和体积单位换算"
+      }
+    ],
+    "human_explanation": "单位换算是在用不同单位说同一个量。",
+    "life_examples": [
+      "1米等于100厘米",
+      "1平方米等于10000平方厘米"
+    ],
+    "why_needed": "不懂单位，应用题、面积体积和速度问题都会看错数量。",
+    "formal_definition": "单位换算是在用不同单位说同一个量。",
+    "term_explanations": {
+      "单位进率": "两个单位之间相差多少倍。",
+      "同一个量": "东西没有变，只是说法变了。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "measurement_units",
+      "place_value_decimal_system"
+    ],
+    "next_ids": [
+      "area",
+      "volume",
+      "rate_speed_distance"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "单位阶梯",
+      "尺子"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级上册至五年级下册",
+      "常见量 / 面积单位 / 体积单位",
+      "长度、质量、时间、面积和体积单位换算"
+    ],
+    "understanding_route": [
+      "量什么",
+      "单位",
+      "进率",
+      "乘或除",
+      "检验大小"
+    ]
+  },
+  {
+    "id": "function_intro",
+    "name": "函数入门",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "中国义务教育数学",
+        "grade": "八年级",
+        "chapter": "函数",
+        "section": "函数的概念"
+      }
+    ],
+    "human_explanation": "函数是在描述一个量变了，另一个量怎样跟着变。",
+    "life_examples": [
+      "打车费用随里程变化",
+      "水位随放水时间变化"
+    ],
+    "why_needed": "函数把变化关系变成可以预测、画图和推理的数学对象。",
+    "formal_definition": "在某个变化过程中，如果对于变量x的每一个确定值，变量y都有唯一确定的值与它对应，那么y是x的函数。",
+    "term_explanations": {
+      "变量": "会变化的数量。",
+      "输入": "先给进去的那个数或条件。",
+      "输出": "根据输入得到的结果。",
+      "对应": "一个东西配到另一个东西。",
+      "唯一": "只有一个，不会同时出现两个不同结果。"
+    },
+    "misconceptions": [
+      "一上来背定义，不知道输入输出和唯一对应是什么意思。"
+    ],
+    "prerequisite_ids": [
+      "quantity_relationship",
+      "linear_equation_one_variable",
+      "linear_equation_two_variables"
+    ],
+    "next_ids": [],
+    "formulas": [
+      "y = f(x)",
+      "y = kx + b"
+    ],
+    "visualization_methods": [
+      "输入输出机器",
+      "表格",
+      "坐标图像",
+      "变化故事"
+    ],
+    "ai_teaching_hints": [
+      "按生活变化、两个量、输入输出、表格、图像、表达式讲。"
+    ],
+    "exercise_types": [
+      "判断函数关系",
+      "表格补全",
+      "读图像",
+      "写表达式"
+    ],
+    "school_route": [
+      "初中",
+      "函数",
+      "函数的概念"
+    ],
+    "understanding_route": [
+      "生活变化",
+      "两个量之间关系",
+      "输入输出",
+      "表格",
+      "图像",
+      "函数表达式",
+      "正式数学定义"
+    ]
+  },
+  {
+    "id": "linear_equation_systems",
+    "name": "二元一次方程组",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第八章 二元一次方程组",
+        "section": "消元法与实际问题"
+      }
+    ],
+    "human_explanation": "方程组是几个条件同时成立，解是同时满足它们的未知数取值。",
+    "life_examples": [
+      "鸡兔同笼",
+      "两种票价求人数"
+    ],
+    "why_needed": "它是从单个条件走向多条件建模的关键。",
+    "formal_definition": "方程组是几个条件同时成立，解是同时满足它们的未知数取值。",
+    "term_explanations": {
+      "消元": "想办法先去掉一个未知数。",
+      "公共解": "同时让所有方程成立的解。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "linear_equation_two_variables",
+      "linear_equation_one_variable"
+    ],
+    "next_ids": [
+      "linear_function"
+    ],
+    "formulas": [
+      "ax + by = c"
+    ],
+    "visualization_methods": [
+      "两条直线交点",
+      "表格"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第八章 二元一次方程组",
+      "消元法与实际问题"
+    ],
+    "understanding_route": [
+      "两个未知数",
+      "两个条件",
+      "同时成立",
+      "消元",
+      "检验"
+    ]
+  },
+  {
+    "id": "division_meaning",
+    "name": "除法的意义",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级下册",
+        "chapter": "表内除法",
+        "section": "平均分"
+      }
+    ],
+    "human_explanation": "除法是在平均分，或者看一个数量里有几个同样的组。",
+    "life_examples": [
+      "12颗糖平均分给4人",
+      "18里面有几个3"
+    ],
+    "why_needed": "分数、比、比例和概率都需要理解平均分和每份多少。",
+    "formal_definition": "除法是在平均分，或者看一个数量里有几个同样的组。",
+    "term_explanations": {
+      "平均分": "每份一样多。",
+      "商": "除法算出的结果。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "multiplication_meaning"
+    ],
+    "next_ids": [
+      "fraction",
+      "arithmetic_operations"
+    ],
+    "formulas": [
+      "a ÷ b"
+    ],
+    "visualization_methods": [
+      "分物图",
+      "线段图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级下册",
+      "表内除法",
+      "平均分"
+    ],
+    "understanding_route": [
+      "平均分",
+      "每份多少",
+      "有几个组",
+      "除法式子"
+    ]
+  },
+  {
+    "id": "multiplication_table",
+    "name": "乘法口诀",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级上册至二年级下册",
+        "chapter": "表内乘法",
+        "section": "乘法口诀"
+      }
+    ],
+    "human_explanation": "乘法口诀是把常见的相同组数量结果记熟，方便快速计算。",
+    "life_examples": [
+      "三四十二表示3组4一共12",
+      "算4排每排6人"
+    ],
+    "why_needed": "多位数乘除、面积、比例和函数数值计算都会频繁用到。",
+    "formal_definition": "乘法口诀是把常见的相同组数量结果记熟，方便快速计算。",
+    "term_explanations": {
+      "口诀": "把常用结果压缩成容易记住的句子。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "multiplication_meaning"
+    ],
+    "next_ids": [
+      "integer_multiplication_division",
+      "area"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "九九表",
+      "阵列图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级上册至二年级下册",
+      "表内乘法",
+      "乘法口诀"
+    ],
+    "understanding_route": [
+      "相同组",
+      "重复加法",
+      "阵列",
+      "口诀",
+      "快速计算"
+    ]
+  },
+  {
+    "id": "perimeter",
+    "name": "周长",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "三年级上册",
+        "chapter": "长方形和正方形",
+        "section": "周长"
+      }
+    ],
+    "human_explanation": "周长是一圈边线的总长度。",
+    "life_examples": [
+      "给操场围栏杆",
+      "给画框包边"
+    ],
+    "why_needed": "它帮助学生区分边界长度和内部面积。",
+    "formal_definition": "周长是一圈边线的总长度。",
+    "term_explanations": {
+      "边界": "图形最外面的一圈。",
+      "总长度": "把每一段边长加起来。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "measurement_units",
+      "line_angle_basic"
+    ],
+    "next_ids": [
+      "area"
+    ],
+    "formulas": [
+      "长方形周长 = 2 x (长 + 宽)"
+    ],
+    "visualization_methods": [
+      "绕绳模型",
+      "方格纸"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "三年级上册",
+      "长方形和正方形",
+      "周长"
+    ],
+    "understanding_route": [
+      "沿边走一圈",
+      "每段边",
+      "加起来",
+      "公式只是简写"
+    ]
+  },
+  {
+    "id": "rectangle_square_features",
+    "name": "长方形和正方形",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "三年级上册",
+        "chapter": "长方形和正方形",
+        "section": "边和角的特征"
+      }
+    ],
+    "human_explanation": "长方形和正方形用边长和直角描述规则的四边形。",
+    "life_examples": [
+      "课桌面",
+      "方格纸中的小格"
+    ],
+    "why_needed": "它们是周长、面积、体积和坐标图像的基本形状。",
+    "formal_definition": "长方形和正方形用边长和直角描述规则的四边形。",
+    "term_explanations": {
+      "对边": "相对的两条边。",
+      "直角": "像课本角一样正正的角。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "line_angle_basic"
+    ],
+    "next_ids": [
+      "perimeter",
+      "area",
+      "parallelogram"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "方格纸",
+      "折纸"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "三年级上册",
+      "长方形和正方形",
+      "边和角的特征"
+    ],
+    "understanding_route": [
+      "四条边",
+      "四个角",
+      "对边相等",
+      "正方形是特殊长方形"
+    ]
+  },
+  {
+    "id": "primary_circle_features",
+    "name": "圆的初步认识",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "六年级上册",
+        "chapter": "圆",
+        "section": "圆的认识、周长和面积"
+      }
+    ],
+    "human_explanation": "圆是到同一个中心点距离都一样远的一圈点。",
+    "life_examples": [
+      "车轮",
+      "钟面"
+    ],
+    "why_needed": "初中圆、旋转、角度和几何证明都需要先有圆的直觉。",
+    "formal_definition": "圆是到同一个中心点距离都一样远的一圈点。",
+    "term_explanations": {
+      "半径": "圆心到圆上一点的线段。",
+      "直径": "经过圆心、两端在圆上的线段。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "line_angle_basic",
+      "measurement_units"
+    ],
+    "next_ids": [
+      "circle"
+    ],
+    "formulas": [
+      "C = 2πr",
+      "S = πr^2"
+    ],
+    "visualization_methods": [
+      "圆规作图",
+      "绳子绕圆"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "六年级上册",
+      "圆",
+      "圆的认识、周长和面积"
+    ],
+    "understanding_route": [
+      "定点",
+      "定长",
+      "一圈点",
+      "半径",
+      "周长和面积"
+    ]
+  },
+  {
+    "id": "mixed_operations",
+    "name": "四则混合运算",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "三年级下册至四年级下册",
+        "chapter": "四则运算",
+        "section": "运算顺序"
+      }
+    ],
+    "human_explanation": "混合运算是在一个式子里安排多个数量动作的先后顺序。",
+    "life_examples": [
+      "先买几盒再加散装",
+      "总价减优惠再平均分"
+    ],
+    "why_needed": "应用题列综合算式、解方程和代数式变形都要守住运算顺序。",
+    "formal_definition": "混合运算是在一个式子里安排多个数量动作的先后顺序。",
+    "term_explanations": {
+      "括号": "提醒里面先看作一个整体。",
+      "运算顺序": "先算什么、后算什么的规则。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "integer_addition_subtraction",
+      "multiplication_meaning",
+      "division_meaning"
+    ],
+    "next_ids": [
+      "distributive_property",
+      "algebraic_expression"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "步骤树",
+      "数量动作图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "三年级下册至四年级下册",
+      "四则运算",
+      "运算顺序"
+    ],
+    "understanding_route": [
+      "一个动作",
+      "多个动作",
+      "先乘除后加减",
+      "括号优先"
+    ]
+  },
+  {
+    "id": "decimal",
+    "name": "小数",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "三年级下册至四年级下册",
+        "chapter": "小数的初步认识 / 小数的意义和性质",
+        "section": "小数表示与大小比较"
+      }
+    ],
+    "human_explanation": "小数是把1继续平均分成十分、百分、千分后写出来的数。",
+    "life_examples": [
+      "1.5米",
+      "3.25元"
+    ],
+    "why_needed": "测量、钱数、百分数和函数图像都经常使用小数。",
+    "formal_definition": "小数是把1继续平均分成十分、百分、千分后写出来的数。",
+    "term_explanations": {
+      "小数点": "整数部分和小数部分的分界。",
+      "十分之一": "把1平均分成10份中的1份。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "place_value_decimal_system",
+      "division_meaning"
+    ],
+    "next_ids": [
+      "decimal_operations",
+      "percent"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数轴",
+      "方格纸"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "三年级下册至四年级下册",
+      "小数的初步认识 / 小数的意义和性质",
+      "小数表示与大小比较"
+    ],
+    "understanding_route": [
+      "单位1",
+      "继续平均分",
+      "十分位",
+      "百分位",
+      "小数点"
+    ]
+  },
+  {
+    "id": "fraction_operations",
+    "name": "分数运算",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "五年级下册至六年级上册",
+        "chapter": "分数的意义和性质 / 分数乘法与除法",
+        "section": "通分、约分与分数四则运算"
+      }
+    ],
+    "human_explanation": "分数运算是在同一个单位1下处理几份、几倍和平均分。",
+    "life_examples": [
+      "半杯水再加四分之一杯",
+      "一段路的三分之二"
+    ],
+    "why_needed": "比例、概率、代数分式都需要学生真正懂分数运算。",
+    "formal_definition": "分数运算是在同一个单位1下处理几份、几倍和平均分。",
+    "term_explanations": {
+      "通分": "把分母变成相同，方便比较或加减。",
+      "约分": "把分子分母同时缩小但大小不变。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "fraction",
+      "division_meaning"
+    ],
+    "next_ids": [
+      "ratio",
+      "probability"
+    ],
+    "formulas": [
+      "a/b + c/d",
+      "a/b x c/d"
+    ],
+    "visualization_methods": [
+      "面积模型",
+      "数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "五年级下册至六年级上册",
+      "分数的意义和性质 / 分数乘法与除法",
+      "通分、约分与分数四则运算"
+    ],
+    "understanding_route": [
+      "单位1",
+      "同分母",
+      "通分",
+      "约分",
+      "乘除意义"
+    ]
+  },
+  {
+    "id": "ratio",
+    "name": "比",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "六年级上册",
+        "chapter": "比",
+        "section": "比的意义"
+      }
+    ],
+    "human_explanation": "比是在比较两个数量之间的倍数关系。",
+    "life_examples": [
+      "果汁和水的配比",
+      "地图比例尺"
+    ],
+    "why_needed": "比例、相似、三角函数和函数斜率都离不开比。",
+    "formal_definition": "比是在比较两个数量之间的倍数关系。",
+    "term_explanations": {
+      "前项": "比号前面的量。",
+      "后项": "比号后面的量。",
+      "比值": "两个量相除得到的数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "fraction",
+      "division_meaning"
+    ],
+    "next_ids": [
+      "proportion",
+      "similar_triangles"
+    ],
+    "formulas": [
+      "a:b = a ÷ b"
+    ],
+    "visualization_methods": [
+      "线段图",
+      "双数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "六年级上册",
+      "比",
+      "比的意义"
+    ],
+    "understanding_route": [
+      "两个量",
+      "谁和谁比",
+      "除法",
+      "比值",
+      "等价的比"
+    ]
+  },
+  {
+    "id": "division_with_remainder",
+    "name": "有余数的除法",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "二年级下册至三年级上册",
+        "chapter": "有余数的除法",
+        "section": "余数的意义"
+      }
+    ],
+    "human_explanation": "有余数的除法是在平均分后，还剩下一些不够再分成一整组。",
+    "life_examples": [
+      "17颗糖每人分5颗，还剩2颗",
+      "装箱后剩几件"
+    ],
+    "why_needed": "它帮助学生理解除法不是永远整除，也为分数和取整问题打底。",
+    "formal_definition": "有余数的除法是在平均分后，还剩下一些不够再分成一整组。",
+    "term_explanations": {
+      "余数": "平均分后剩下的数量。",
+      "整除": "没有剩下的除法情况。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "division_meaning"
+    ],
+    "next_ids": [
+      "fraction",
+      "integer_multiplication_division"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "实物分组",
+      "线段图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "二年级下册至三年级上册",
+      "有余数的除法",
+      "余数的意义"
+    ],
+    "understanding_route": [
+      "平均分",
+      "每组一样多",
+      "剩下",
+      "余数小于除数"
+    ]
+  },
+  {
+    "id": "integer_multiplication_division",
+    "name": "整数乘除法",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "三年级上册至四年级上册",
+        "chapter": "多位数乘一位数 / 除数是一位数的除法",
+        "section": "笔算乘除法"
+      }
+    ],
+    "human_explanation": "整数乘除法是在更大的数里处理相同组和平均分。",
+    "life_examples": [
+      "24盒彩笔每盒12支",
+      "96本书平均分到8个班"
+    ],
+    "why_needed": "面积、体积、比例、速度和代数计算都离不开整数乘除。",
+    "formal_definition": "整数乘除法是在更大的数里处理相同组和平均分。",
+    "term_explanations": {
+      "笔算": "按数位一步一步写下来的计算。",
+      "余数": "平均分后剩下不够再分的一部分。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "place_value_decimal_system",
+      "multiplication_table",
+      "division_meaning"
+    ],
+    "next_ids": [
+      "mixed_operations",
+      "fraction_operations"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数位表",
+      "分组图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "三年级上册至四年级上册",
+      "多位数乘一位数 / 除数是一位数的除法",
+      "笔算乘除法"
+    ],
+    "understanding_route": [
+      "相同组",
+      "按位乘除",
+      "进位退位",
+      "验算"
+    ]
+  },
+  {
+    "id": "area",
+    "name": "面积",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "三年级下册至五年级上册",
+        "chapter": "面积 / 多边形的面积",
+        "section": "长方形、平行四边形、三角形和梯形面积"
+      }
+    ],
+    "human_explanation": "面积是在问一个平面图形里面铺了多少个单位小方格。",
+    "life_examples": [
+      "铺地砖",
+      "计算土地大小"
+    ],
+    "why_needed": "面积模型能解释乘法、分配律、几何公式和二次函数直觉。",
+    "formal_definition": "面积是在问一个平面图形里面铺了多少个单位小方格。",
+    "term_explanations": {
+      "面积单位": "用来铺满平面的单位小方格。",
+      "底和高": "互相垂直的一组测量线。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "perimeter",
+      "multiplication_meaning"
+    ],
+    "next_ids": [
+      "volume",
+      "distributive_property"
+    ],
+    "formulas": [
+      "长方形面积 = 长 x 宽",
+      "三角形面积 = 底 x 高 ÷ 2"
+    ],
+    "visualization_methods": [
+      "方格纸",
+      "割补图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "三年级下册至五年级上册",
+      "面积 / 多边形的面积",
+      "长方形、平行四边形、三角形和梯形面积"
+    ],
+    "understanding_route": [
+      "铺方格",
+      "数方格",
+      "长乘宽",
+      "割补转化",
+      "公式"
+    ]
+  },
+  {
+    "id": "primary_equation",
+    "name": "简易方程",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "五年级上册",
+        "chapter": "简易方程",
+        "section": "用字母表示数与解简易方程"
+      }
+    ],
+    "human_explanation": "简易方程是把不知道的数先用字母占位，再用等量关系找出来。",
+    "life_examples": [
+      "已知总价求数量",
+      "已知周长求边长"
+    ],
+    "why_needed": "这是从算术走向代数的关键桥梁。",
+    "formal_definition": "简易方程是把不知道的数先用字母占位，再用等量关系找出来。",
+    "term_explanations": {
+      "字母": "暂时代替一个数的符号。",
+      "解方程": "找出让等式成立的未知数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "equality",
+      "quantity_relationship",
+      "mixed_operations"
+    ],
+    "next_ids": [
+      "linear_equation_one_variable"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "天平模型",
+      "线段图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "五年级上册",
+      "简易方程",
+      "用字母表示数与解简易方程"
+    ],
+    "understanding_route": [
+      "不知道的数",
+      "用字母表示",
+      "等量关系",
+      "方程",
+      "求解"
+    ]
+  },
+  {
+    "id": "decimal_operations",
+    "name": "小数运算",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "五年级上册",
+        "chapter": "小数乘法与小数除法",
+        "section": "小数四则计算"
+      }
+    ],
+    "human_explanation": "小数运算还是数量动作，只是单位被分得更细。",
+    "life_examples": [
+      "每千克2.5元买3.2千克",
+      "速度和时间相乘求路程"
+    ],
+    "why_needed": "实际测量和初中函数里的数值计算经常要用小数。",
+    "formal_definition": "小数运算还是数量动作，只是单位被分得更细。",
+    "term_explanations": {
+      "小数位": "小数点右边的位置。",
+      "近似数": "接近准确值、方便使用的数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "decimal",
+      "arithmetic_operations"
+    ],
+    "next_ids": [
+      "ratio",
+      "linear_function"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "面积模型",
+      "数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "五年级上册",
+      "小数乘法与小数除法",
+      "小数四则计算"
+    ],
+    "understanding_route": [
+      "看单位",
+      "按整数方法想",
+      "处理小数点",
+      "估算检验"
+    ]
+  },
+  {
+    "id": "percent",
+    "name": "百分数",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "六年级上册",
+        "chapter": "百分数",
+        "section": "百分数的意义和应用"
+      }
+    ],
+    "human_explanation": "百分数是把比较的标准统一成100份。",
+    "life_examples": [
+      "打八折",
+      "正确率95%"
+    ],
+    "why_needed": "折扣、增长率、统计图和概率表达都会用百分数。",
+    "formal_definition": "百分数是把比较的标准统一成100份。",
+    "term_explanations": {
+      "百分号": "表示以100为标准。",
+      "增长率": "增加的部分占原来的百分之几。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "fraction",
+      "decimal"
+    ],
+    "next_ids": [
+      "probability",
+      "data_analysis"
+    ],
+    "formulas": [
+      "a% = a/100"
+    ],
+    "visualization_methods": [
+      "百格图",
+      "条形图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "六年级上册",
+      "百分数",
+      "百分数的意义和应用"
+    ],
+    "understanding_route": [
+      "单位1",
+      "100份",
+      "占几份",
+      "百分号",
+      "实际问题"
+    ]
+  },
+  {
+    "id": "rational_numbers",
+    "name": "有理数",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第一章 有理数",
+        "section": "有理数及其运算"
+      }
+    ],
+    "human_explanation": "有理数把正数、0、负数、分数和小数放进同一个数的系统。",
+    "life_examples": [
+      "海拔低于海平面",
+      "收入和支出"
+    ],
+    "why_needed": "初中代数从有理数开始扩展数的范围。",
+    "formal_definition": "有理数把正数、0、负数、分数和小数放进同一个数的系统。",
+    "term_explanations": {
+      "正数": "比0大的数。",
+      "负数": "比0小、表示相反意义的数。",
+      "数轴": "用线上的点表示数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "negative_number_intro",
+      "fraction",
+      "decimal"
+    ],
+    "next_ids": [
+      "absolute_value",
+      "real_numbers",
+      "algebraic_expression"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数轴",
+      "温度计"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第一章 有理数",
+      "有理数及其运算"
+    ],
+    "understanding_route": [
+      "相反意义",
+      "0",
+      "数轴",
+      "正负数",
+      "有理数运算"
+    ]
+  },
+  {
+    "id": "proportion",
+    "name": "比例",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "六年级下册",
+        "chapter": "比例",
+        "section": "正比例、反比例和比例尺"
+      }
+    ],
+    "human_explanation": "比例是在说两个比相等，或者两个量按稳定规则一起变。",
+    "life_examples": [
+      "速度一定时路程和时间",
+      "总量一定时每份和份数"
+    ],
+    "why_needed": "一次函数、反比例函数、相似图形和建模都需要比例直觉。",
+    "formal_definition": "比例是在说两个比相等，或者两个量按稳定规则一起变。",
+    "term_explanations": {
+      "正比例": "一个量变成几倍，另一个量也变成几倍。",
+      "反比例": "一个量变大，另一个量按乘积不变的方式变小。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "ratio",
+      "quantity_relationship"
+    ],
+    "next_ids": [
+      "linear_function",
+      "inverse_proportion_function"
+    ],
+    "formulas": [
+      "a:b = c:d",
+      "y = kx",
+      "xy = k"
+    ],
+    "visualization_methods": [
+      "表格",
+      "双数轴",
+      "关系图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "六年级下册",
+      "比例",
+      "正比例、反比例和比例尺"
+    ],
+    "understanding_route": [
+      "比",
+      "两个比相等",
+      "变化关系",
+      "正比例",
+      "反比例"
+    ]
+  },
+  {
+    "id": "volume",
+    "name": "体积",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "五年级下册",
+        "chapter": "长方体和正方体",
+        "section": "体积和容积"
+      }
+    ],
+    "human_explanation": "体积是在问一个立体里面能装多少个单位小正方体。",
+    "life_examples": [
+      "盒子能装多少",
+      "水箱容量"
+    ],
+    "why_needed": "空间想象、单位换算和初中几何都需要体积直觉。",
+    "formal_definition": "体积是在问一个立体里面能装多少个单位小正方体。",
+    "term_explanations": {
+      "体积单位": "用来填满空间的小正方体。",
+      "容积": "容器里面能装多少。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "area",
+      "measurement_units"
+    ],
+    "next_ids": [
+      "geometric_figures_intro"
+    ],
+    "formulas": [
+      "长方体体积 = 长 x 宽 x 高"
+    ],
+    "visualization_methods": [
+      "积木模型",
+      "展开图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "五年级下册",
+      "长方体和正方体",
+      "体积和容积"
+    ],
+    "understanding_route": [
+      "一层方格",
+      "很多层",
+      "长宽高",
+      "单位小正方体",
+      "体积公式"
+    ]
+  },
+  {
+    "id": "algebraic_expression",
+    "name": "整式",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第二章 整式的加减",
+        "section": "整式"
+      }
+    ],
+    "human_explanation": "整式是用数、字母和加减乘方拼出的数量表达。",
+    "life_examples": [
+      "3x表示3个x",
+      "2a+5表示某个量再加5"
+    ],
+    "why_needed": "方程、函数和公式都需要先会读懂式子。",
+    "formal_definition": "整式是用数、字母和加减乘方拼出的数量表达。",
+    "term_explanations": {
+      "单项式": "没有加减分开的一个整式块。",
+      "多项式": "几个单项式加减组成的式子。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "primary_equation",
+      "mixed_operations"
+    ],
+    "next_ids": [
+      "like_terms",
+      "polynomial_multiplication"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "式子结构树",
+      "面积模型"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第二章 整式的加减",
+      "整式"
+    ],
+    "understanding_route": [
+      "具体数",
+      "字母代替数",
+      "项",
+      "整式",
+      "式子含义"
+    ]
+  },
+  {
+    "id": "equation_applications_primary",
+    "name": "简易方程应用",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "五年级上册",
+        "chapter": "简易方程",
+        "section": "列方程解决问题"
+      }
+    ],
+    "human_explanation": "列方程是把题目里的相等关系写成含未知数的等式。",
+    "life_examples": [
+      "已知总价和单价求数量",
+      "已知周长求边长"
+    ],
+    "why_needed": "初中的方程和函数建模都从这里开始。",
+    "formal_definition": "列方程是把题目里的相等关系写成含未知数的等式。",
+    "term_explanations": {
+      "未知量": "题目里还不知道、需要求的量。",
+      "等量关系": "两边一样多的关系。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "primary_equation",
+      "quantity_relationship"
+    ],
+    "next_ids": [
+      "linear_equation_one_variable",
+      "linear_equation_applications"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "线段图",
+      "天平模型"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "五年级上册",
+      "简易方程",
+      "列方程解决问题"
+    ],
+    "understanding_route": [
+      "找未知量",
+      "找相等关系",
+      "列方程",
+      "解方程",
+      "检验"
+    ]
+  },
+  {
+    "id": "rate_speed_distance",
+    "name": "速度、时间和路程",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "五年级上册至六年级下册",
+        "chapter": "小数乘除法 / 比和比例",
+        "section": "行程问题"
+      }
+    ],
+    "human_explanation": "速度是在说单位时间里走了多少路。",
+    "life_examples": [
+      "每小时60千米开3小时",
+      "每分钟走80米"
+    ],
+    "why_needed": "它是比例、一次函数和应用题建模的常见入口。",
+    "formal_definition": "速度是在说单位时间里走了多少路。",
+    "term_explanations": {
+      "速度": "每一份时间走过的路程。",
+      "单位时间": "被当作一份的时间。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "decimal_operations",
+      "quantity_relationship",
+      "unit_conversion"
+    ],
+    "next_ids": [
+      "proportion",
+      "linear_function"
+    ],
+    "formulas": [
+      "路程 = 速度 x 时间"
+    ],
+    "visualization_methods": [
+      "线段图",
+      "表格"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "五年级上册至六年级下册",
+      "小数乘除法 / 比和比例",
+      "行程问题"
+    ],
+    "understanding_route": [
+      "路程",
+      "时间",
+      "每份时间",
+      "速度",
+      "三量关系"
+    ]
+  },
+  {
+    "id": "data_collection_chart",
+    "name": "数据收集与统计图",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "一年级下册至六年级上册",
+        "chapter": "统计",
+        "section": "分类、记录、条形统计图和扇形统计图"
+      }
+    ],
+    "human_explanation": "统计图是把一堆数据整理成容易看出多少和变化的图。",
+    "life_examples": [
+      "统计喜欢的运动",
+      "看各类支出占比"
+    ],
+    "why_needed": "初中统计、概率和现实判断都要先会看数据。",
+    "formal_definition": "统计图是把一堆数据整理成容易看出多少和变化的图。",
+    "term_explanations": {
+      "数据": "记录下来的数量或信息。",
+      "统计图": "用图形显示数据。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "number_recognition",
+      "percent"
+    ],
+    "next_ids": [
+      "data_collection_description",
+      "data_analysis"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "条形图",
+      "折线图",
+      "扇形图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "一年级下册至六年级上册",
+      "统计",
+      "分类、记录、条形统计图和扇形统计图"
+    ],
+    "understanding_route": [
+      "收集",
+      "分类",
+      "记录",
+      "画图",
+      "读结论"
+    ]
+  },
+  {
+    "id": "absolute_value",
+    "name": "绝对值",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第一章 有理数",
+        "section": "数轴、相反数和绝对值"
+      }
+    ],
+    "human_explanation": "绝对值是在问一个数离0有多远，不管方向。",
+    "life_examples": [
+      "-3和3离0都是3格"
+    ],
+    "why_needed": "比较大小、解不等式和距离问题都需要绝对值。",
+    "formal_definition": "绝对值是在问一个数离0有多远，不管方向。",
+    "term_explanations": {
+      "距离": "两个位置之间隔了多远。",
+      "相反数": "离0一样远但方向相反的两个数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "rational_numbers"
+    ],
+    "next_ids": [
+      "inequalities"
+    ],
+    "formulas": [
+      "|a|"
+    ],
+    "visualization_methods": [
+      "数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第一章 有理数",
+      "数轴、相反数和绝对值"
+    ],
+    "understanding_route": [
+      "数轴",
+      "方向",
+      "距离",
+      "离0多远",
+      "绝对值符号"
+    ]
+  },
+  {
+    "id": "power_scientific_notation",
+    "name": "乘方与科学记数法",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第一章 有理数",
+        "section": "有理数的乘方"
+      }
+    ],
+    "human_explanation": "乘方是同一个数连续相乘的简写。",
+    "life_examples": [
+      "10的6次方表示一百万",
+      "正方形面积用边长的平方"
+    ],
+    "why_needed": "大数、小数、面积体积增长和二次函数都用到乘方。",
+    "formal_definition": "乘方是同一个数连续相乘的简写。",
+    "term_explanations": {
+      "底数": "被重复相乘的数。",
+      "指数": "重复相乘的次数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "multiplication_meaning",
+      "rational_numbers"
+    ],
+    "next_ids": [
+      "quadratic_equation",
+      "quadratic_function"
+    ],
+    "formulas": [
+      "a^n",
+      "a x 10^n"
+    ],
+    "visualization_methods": [
+      "方格面积",
+      "数量级尺"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第一章 有理数",
+      "有理数的乘方"
+    ],
+    "understanding_route": [
+      "重复乘",
+      "简写",
+      "底数",
+      "指数",
+      "科学记数法"
+    ]
+  },
+  {
+    "id": "coordinate_plane",
+    "name": "平面直角坐标系",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第七章 平面直角坐标系",
+        "section": "有序数对与坐标"
+      }
+    ],
+    "human_explanation": "坐标系用两个数确定平面上一个点的位置。",
+    "life_examples": [
+      "座位第3列第5排",
+      "地图定位"
+    ],
+    "why_needed": "函数图像、几何变换和数据图都需要坐标语言。",
+    "formal_definition": "坐标系用两个数确定平面上一个点的位置。",
+    "term_explanations": {
+      "横坐标": "表示左右位置的数。",
+      "纵坐标": "表示上下位置的数。",
+      "有序数对": "顺序不能换的一对数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "negative_number_intro",
+      "rational_numbers"
+    ],
+    "next_ids": [
+      "function_intro",
+      "linear_function",
+      "quadratic_function"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "坐标纸",
+      "地图网格"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第七章 平面直角坐标系",
+      "有序数对与坐标"
+    ],
+    "understanding_route": [
+      "一条数轴定位",
+      "两条数轴",
+      "横纵方向",
+      "有序数对",
+      "点的位置"
+    ]
+  },
+  {
+    "id": "scale_ratio_application",
+    "name": "比例尺",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "六年级下册",
+        "chapter": "比例",
+        "section": "比例尺"
+      }
+    ],
+    "human_explanation": "比例尺是在说图上距离和实际距离按同一个比缩小或放大。",
+    "life_examples": [
+      "地图上1厘米表示实际1千米",
+      "按比例画教室平面图"
+    ],
+    "why_needed": "它连接比、比例、相似图形和现实测量。",
+    "formal_definition": "比例尺是在说图上距离和实际距离按同一个比缩小或放大。",
+    "term_explanations": {
+      "图上距离": "图里量到的距离。",
+      "实际距离": "现实里的真实距离。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "ratio",
+      "proportion",
+      "unit_conversion"
+    ],
+    "next_ids": [
+      "similar_triangles"
+    ],
+    "formulas": [
+      "比例尺 = 图上距离 : 实际距离"
+    ],
+    "visualization_methods": [
+      "地图",
+      "双数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "六年级下册",
+      "比例",
+      "比例尺"
+    ],
+    "understanding_route": [
+      "两个距离",
+      "同单位",
+      "比",
+      "放大缩小",
+      "实际计算"
+    ]
+  },
+  {
+    "id": "geometric_figures_intro",
+    "name": "几何图形初步",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第四章 几何图形初步",
+        "section": "立体图形、平面图形、线段和角"
+      }
+    ],
+    "human_explanation": "几何图形是把现实物体抽象成点、线、面和体来研究。",
+    "life_examples": [
+      "把纸盒看成长方体",
+      "把道路看成线段"
+    ],
+    "why_needed": "后续平行线、三角形、圆和证明都建立在这些基本语言上。",
+    "formal_definition": "几何图形是把现实物体抽象成点、线、面和体来研究。",
+    "term_explanations": {
+      "点": "只表示位置。",
+      "线": "表示延伸方向。",
+      "面": "表示平铺的范围。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "line_angle_basic",
+      "volume"
+    ],
+    "next_ids": [
+      "parallel_lines",
+      "triangle_basic",
+      "circle"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "实物模型",
+      "展开图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第四章 几何图形初步",
+      "立体图形、平面图形、线段和角"
+    ],
+    "understanding_route": [
+      "现实物体",
+      "抽象形状",
+      "点线面体",
+      "位置关系",
+      "度量"
+    ]
+  },
+  {
+    "id": "like_terms",
+    "name": "合并同类项",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第二章 整式的加减",
+        "section": "整式的加减"
+      }
+    ],
+    "human_explanation": "同类项是同一种字母部分的数量，可以像同类物品一样合并。",
+    "life_examples": [
+      "3个苹果加2个苹果是5个苹果，3x+2x=5x"
+    ],
+    "why_needed": "解方程、化简函数表达式和因式分解前都要会合并。",
+    "formal_definition": "同类项是同一种字母部分的数量，可以像同类物品一样合并。",
+    "term_explanations": {
+      "项": "式子里被加减号分开的块。",
+      "系数": "字母前面乘着的数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "algebraic_expression",
+      "distributive_property"
+    ],
+    "next_ids": [
+      "linear_equation_one_variable"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "物品分类",
+      "颜色标注式子"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第二章 整式的加减",
+      "整式的加减"
+    ],
+    "understanding_route": [
+      "项",
+      "字母部分相同",
+      "系数相加",
+      "字母部分不变"
+    ]
+  },
+  {
+    "id": "remove_parentheses",
+    "name": "去括号",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级上册",
+        "chapter": "第二章 整式的加减",
+        "section": "去括号与添括号"
+      }
+    ],
+    "human_explanation": "去括号是在不改变式子意思的前提下，把括号里的项放出来。",
+    "life_examples": [
+      "3-(x+2)不能直接写成3-x+2",
+      "把总价拆成几部分"
+    ],
+    "why_needed": "合并同类项、解方程和整式乘法前经常要先处理括号。",
+    "formal_definition": "去括号是在不改变式子意思的前提下，把括号里的项放出来。",
+    "term_explanations": {
+      "符号": "项前面的加号或减号。",
+      "添括号": "把几项重新合成一组。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "algebraic_expression",
+      "distributive_property"
+    ],
+    "next_ids": [
+      "like_terms",
+      "linear_equation_one_variable"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "颜色标注式子",
+      "面积模型"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级上册",
+      "第二章 整式的加减",
+      "去括号与添括号"
+    ],
+    "understanding_route": [
+      "括号是一组",
+      "前面是加号",
+      "前面是减号",
+      "符号变化",
+      "合并"
+    ]
+  },
+  {
+    "id": "average",
+    "name": "平均数",
+    "grade_band": "primary",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "四年级下册",
+        "chapter": "平均数与条形统计图",
+        "section": "平均数"
+      }
+    ],
+    "human_explanation": "平均数是把总量重新分得一样多后每份是多少。",
+    "life_examples": [
+      "平均身高",
+      "平均每天读书页数"
+    ],
+    "why_needed": "平均数是理解数据整体水平的第一种工具。",
+    "formal_definition": "平均数是把总量重新分得一样多后每份是多少。",
+    "term_explanations": {
+      "总量": "全部合起来的量。",
+      "平均": "重新分成一样多。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "division_meaning",
+      "data_collection_chart"
+    ],
+    "next_ids": [
+      "data_analysis"
+    ],
+    "formulas": [
+      "平均数 = 总数 ÷ 份数"
+    ],
+    "visualization_methods": [
+      "移多补少",
+      "条形图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "四年级下册",
+      "平均数与条形统计图",
+      "平均数"
+    ],
+    "understanding_route": [
+      "合起来",
+      "重新平均分",
+      "每份一样多",
+      "代表整体水平"
+    ]
+  },
+  {
+    "id": "data_collection_description",
+    "name": "数据的收集、整理与描述",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第十章 数据的收集、整理与描述",
+        "section": "全面调查、抽样调查和统计图"
+      }
+    ],
+    "human_explanation": "数据整理是在把零散信息变成能回答问题的证据。",
+    "life_examples": [
+      "调查睡眠时间",
+      "统计出行方式"
+    ],
+    "why_needed": "统计不是画图作业，而是用数据判断现实问题。",
+    "formal_definition": "数据整理是在把零散信息变成能回答问题的证据。",
+    "term_explanations": {
+      "样本": "从总体中选出的一部分。",
+      "频数": "某类数据出现的次数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "data_collection_chart",
+      "percent"
+    ],
+    "next_ids": [
+      "data_analysis",
+      "probability"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "频数表",
+      "条形图",
+      "扇形图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第十章 数据的收集、整理与描述",
+      "全面调查、抽样调查和统计图"
+    ],
+    "understanding_route": [
+      "提出问题",
+      "收集数据",
+      "整理分类",
+      "画图",
+      "解释结论"
+    ]
+  },
+  {
+    "id": "inequalities",
+    "name": "一元一次不等式",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第九章 不等式与不等式组",
+        "section": "不等式的性质与解集"
+      }
+    ],
+    "human_explanation": "不等式不是找一个答案，而是找一片能满足条件的数。",
+    "life_examples": [
+      "预算不超过100元",
+      "身高大于某个标准"
+    ],
+    "why_needed": "现实限制条件、取值范围和函数定义域都需要不等式。",
+    "formal_definition": "不等式不是找一个答案，而是找一片能满足条件的数。",
+    "term_explanations": {
+      "解集": "所有能让不等式成立的数。",
+      "不等号": "表示大于、小于等关系的符号。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "absolute_value",
+      "transposition"
+    ],
+    "next_ids": [
+      "inequality_systems"
+    ],
+    "formulas": [
+      "ax + b > c"
+    ],
+    "visualization_methods": [
+      "数轴射线",
+      "范围条"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第九章 不等式与不等式组",
+      "不等式的性质与解集"
+    ],
+    "understanding_route": [
+      "不相等关系",
+      "等式性质类比",
+      "变形",
+      "解集",
+      "数轴表示"
+    ]
+  },
+  {
+    "id": "real_numbers",
+    "name": "实数",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第六章 实数",
+        "section": "平方根、立方根和实数"
+      }
+    ],
+    "human_explanation": "实数把有理数和像根号2这样不能写成分数的数放在一起。",
+    "life_examples": [
+      "边长为1的正方形对角线是根号2"
+    ],
+    "why_needed": "几何长度、坐标、函数和二次根式都需要实数范围。",
+    "formal_definition": "实数把有理数和像根号2这样不能写成分数的数放在一起。",
+    "term_explanations": {
+      "平方根": "平方后得到原数的数。",
+      "无理数": "不能写成两个整数之比的数。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "rational_numbers",
+      "power_scientific_notation"
+    ],
+    "next_ids": [
+      "quadratic_radicals",
+      "pythagorean_theorem"
+    ],
+    "formulas": [
+      "sqrt(a)"
+    ],
+    "visualization_methods": [
+      "数轴",
+      "正方形对角线"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第六章 实数",
+      "平方根、立方根和实数"
+    ],
+    "understanding_route": [
+      "有理数",
+      "开方",
+      "数轴上的新点",
+      "无理数",
+      "实数"
+    ]
+  },
+  {
+    "id": "polynomial_multiplication",
+    "name": "整式的乘法",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级上册",
+        "chapter": "第十四章 整式的乘法与因式分解",
+        "section": "整式的乘法"
+      }
+    ],
+    "human_explanation": "整式乘法是把每一部分按分配律逐个相乘再合并。",
+    "life_examples": [
+      "长方形面积展开",
+      "平方差公式"
+    ],
+    "why_needed": "因式分解、分式、二次方程和函数表达式都要用它。",
+    "formal_definition": "整式乘法是把每一部分按分配律逐个相乘再合并。",
+    "term_explanations": {
+      "幂": "乘方得到的式子。",
+      "展开": "把乘积变成加减形式。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "algebraic_expression",
+      "distributive_property",
+      "power_scientific_notation"
+    ],
+    "next_ids": [
+      "factorization",
+      "quadratic_equation"
+    ],
+    "formulas": [
+      "(a + b)(c + d) = ac + ad + bc + bd"
+    ],
+    "visualization_methods": [
+      "面积模型"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级上册",
+      "第十四章 整式的乘法与因式分解",
+      "整式的乘法"
+    ],
+    "understanding_route": [
+      "单项式乘法",
+      "分配律",
+      "多项式乘法",
+      "公式",
+      "合并"
+    ]
+  },
+  {
+    "id": "linear_function",
+    "name": "一次函数",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级下册",
+        "chapter": "第十九章 一次函数",
+        "section": "函数、正比例函数和一次函数"
+      }
+    ],
+    "human_explanation": "一次函数描述一种稳定的线性变化：每多一点输入，输出按固定速度变。",
+    "life_examples": [
+      "打车费用",
+      "水位匀速上升"
+    ],
+    "why_needed": "它是学生第一次系统把表格、图像和表达式统一起来。",
+    "formal_definition": "一次函数描述一种稳定的线性变化：每多一点输入，输出按固定速度变。",
+    "term_explanations": {
+      "斜率": "图像倾斜程度，也表示变化速度。",
+      "截距": "图像和坐标轴相交的位置。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "function_intro",
+      "coordinate_plane",
+      "proportion",
+      "linear_equation_systems"
+    ],
+    "next_ids": [
+      "quadratic_function",
+      "inverse_proportion_function"
+    ],
+    "formulas": [
+      "y = kx + b"
+    ],
+    "visualization_methods": [
+      "表格",
+      "坐标图像"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级下册",
+      "第十九章 一次函数",
+      "函数、正比例函数和一次函数"
+    ],
+    "understanding_route": [
+      "两个变量",
+      "表格",
+      "坐标点",
+      "直线",
+      "表达式",
+      "变化速度"
+    ]
+  },
+  {
+    "id": "function_graph_reading",
+    "name": "函数图像读法",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级下册",
+        "chapter": "第十九章 一次函数",
+        "section": "函数图象"
+      }
+    ],
+    "human_explanation": "读函数图像是在从点、线和变化趋势里看两个量的关系。",
+    "life_examples": [
+      "看水位随时间变化",
+      "看费用随里程变化"
+    ],
+    "why_needed": "不会读图，就很难理解一次函数、反比例函数和二次函数。",
+    "formal_definition": "读函数图像是在从点、线和变化趋势里看两个量的关系。",
+    "term_explanations": {
+      "横轴": "通常表示输入量的方向。",
+      "纵轴": "通常表示输出量的方向。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "function_intro",
+      "coordinate_plane"
+    ],
+    "next_ids": [
+      "linear_function",
+      "quadratic_function"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "坐标图像",
+      "变化故事"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级下册",
+      "第十九章 一次函数",
+      "函数图象"
+    ],
+    "understanding_route": [
+      "横轴纵轴",
+      "点表示一组值",
+      "线表示变化",
+      "上升下降",
+      "读实际意义"
+    ]
+  },
+  {
+    "id": "parallel_lines",
+    "name": "相交线与平行线",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第五章 相交线与平行线",
+        "section": "平行线的判定与性质"
+      }
+    ],
+    "human_explanation": "平行线是在同一平面内一直不相交的两条直线。",
+    "life_examples": [
+      "铁轨的两条边",
+      "格纸上的平行线"
+    ],
+    "why_needed": "几何证明从平行线的角关系开始训练理由链。",
+    "formal_definition": "平行线是在同一平面内一直不相交的两条直线。",
+    "term_explanations": {
+      "同位角": "两条线被第三条线截出时位置相同的角。",
+      "判定": "用条件说明它为什么成立。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "line_angle_basic",
+      "geometric_figures_intro"
+    ],
+    "next_ids": [
+      "triangle_basic",
+      "congruent_triangles"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "截线图",
+      "折纸"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第五章 相交线与平行线",
+      "平行线的判定与性质"
+    ],
+    "understanding_route": [
+      "相交",
+      "角关系",
+      "平行",
+      "判定",
+      "性质",
+      "简单证明"
+    ]
+  },
+  {
+    "id": "data_analysis",
+    "name": "数据的分析",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级下册",
+        "chapter": "第二十章 数据的分析",
+        "section": "平均数、中位数、众数和方差"
+      }
+    ],
+    "human_explanation": "数据分析是在用几个代表性指标看一组数据的水平和波动。",
+    "life_examples": [
+      "比较两组成绩是否稳定",
+      "分析气温变化"
+    ],
+    "why_needed": "真实世界的数据不能只看一个数字，要知道代表性和稳定性。",
+    "formal_definition": "数据分析是在用几个代表性指标看一组数据的水平和波动。",
+    "term_explanations": {
+      "中位数": "按大小排好后中间的数。",
+      "方差": "描述数据离平均数有多分散。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "average",
+      "data_collection_description"
+    ],
+    "next_ids": [
+      "probability"
+    ],
+    "formulas": [
+      "平均数",
+      "方差"
+    ],
+    "visualization_methods": [
+      "点图",
+      "箱线直觉图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级下册",
+      "第二十章 数据的分析",
+      "平均数、中位数、众数和方差"
+    ],
+    "understanding_route": [
+      "一组数据",
+      "整体水平",
+      "中间位置",
+      "最常出现",
+      "波动大小"
+    ]
+  },
+  {
+    "id": "probability",
+    "name": "概率初步",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级上册",
+        "chapter": "第二十五章 概率初步",
+        "section": "随机事件、列举法和频率估计概率"
+      }
+    ],
+    "human_explanation": "概率是在描述一件事发生的可能性有多大。",
+    "life_examples": [
+      "掷骰子",
+      "抽签"
+    ],
+    "why_needed": "它让学生用数量而不是感觉判断不确定事件。",
+    "formal_definition": "概率是在描述一件事发生的可能性有多大。",
+    "term_explanations": {
+      "随机事件": "可能发生也可能不发生的事件。",
+      "样本空间": "所有可能结果的集合。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "fraction",
+      "percent",
+      "data_collection_description"
+    ],
+    "next_ids": [],
+    "formulas": [
+      "概率 = 有利结果数 ÷ 所有等可能结果数"
+    ],
+    "visualization_methods": [
+      "树状图",
+      "列表"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级上册",
+      "第二十五章 概率初步",
+      "随机事件、列举法和频率估计概率"
+    ],
+    "understanding_route": [
+      "可能或不可能",
+      "所有结果",
+      "有利结果",
+      "比例",
+      "频率估计"
+    ]
+  },
+  {
+    "id": "inequality_systems",
+    "name": "一元一次不等式组",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册",
+        "chapter": "第九章 不等式与不等式组",
+        "section": "不等式组"
+      }
+    ],
+    "human_explanation": "不等式组是多个范围条件同时满足，最后取它们重叠的部分。",
+    "life_examples": [
+      "年龄至少12岁且不超过15岁",
+      "价格在两个限制之间"
+    ],
+    "why_needed": "多条件限制的应用题和函数取值范围都要用这种想法。",
+    "formal_definition": "不等式组是多个范围条件同时满足，最后取它们重叠的部分。",
+    "term_explanations": {
+      "公共部分": "几个范围共同拥有的那一段。",
+      "无解": "没有任何数能同时满足条件。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "inequalities"
+    ],
+    "next_ids": [
+      "linear_function"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "数轴重叠图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册",
+      "第九章 不等式与不等式组",
+      "不等式组"
+    ],
+    "understanding_route": [
+      "一个范围",
+      "多个范围",
+      "画在同一数轴",
+      "找重叠",
+      "写解集"
+    ]
+  },
+  {
+    "id": "quadratic_radicals",
+    "name": "二次根式",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级下册",
+        "chapter": "第十六章 二次根式",
+        "section": "二次根式的性质与运算"
+      }
+    ],
+    "human_explanation": "二次根式是在表示某个非负数的平方根。",
+    "life_examples": [
+      "正方形面积为2时边长是根号2"
+    ],
+    "why_needed": "勾股定理、距离公式和二次方程都离不开根式。",
+    "formal_definition": "二次根式是在表示某个非负数的平方根。",
+    "term_explanations": {
+      "被开方数": "根号里面的数。",
+      "最简二次根式": "已经化到最简单的根式。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "real_numbers"
+    ],
+    "next_ids": [
+      "pythagorean_theorem",
+      "quadratic_equation"
+    ],
+    "formulas": [
+      "sqrt(a), a >= 0"
+    ],
+    "visualization_methods": [
+      "正方形面积",
+      "数轴"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级下册",
+      "第十六章 二次根式",
+      "二次根式的性质与运算"
+    ],
+    "understanding_route": [
+      "平方",
+      "反过来开方",
+      "非负",
+      "化简",
+      "运算"
+    ]
+  },
+  {
+    "id": "factorization",
+    "name": "因式分解",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级上册",
+        "chapter": "第十四章 整式的乘法与因式分解",
+        "section": "因式分解"
+      }
+    ],
+    "human_explanation": "因式分解是把一个加减式改写成几个因式相乘。",
+    "life_examples": [
+      "把面积和拆成长宽乘积",
+      "提取共同因数"
+    ],
+    "why_needed": "解方程、约分、函数零点都常靠把式子拆成乘积。",
+    "formal_definition": "因式分解是把一个加减式改写成几个因式相乘。",
+    "term_explanations": {
+      "因式": "相乘中的每一块。",
+      "公因式": "每一项都共同含有的因式。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "polynomial_multiplication",
+      "like_terms"
+    ],
+    "next_ids": [
+      "rational_expression",
+      "quadratic_equation"
+    ],
+    "formulas": [
+      "a^2 - b^2 = (a + b)(a - b)"
+    ],
+    "visualization_methods": [
+      "面积拼图",
+      "式子颜色标记"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级上册",
+      "第十四章 整式的乘法与因式分解",
+      "因式分解"
+    ],
+    "understanding_route": [
+      "乘法反过来",
+      "找公因式",
+      "公式结构",
+      "乘回去检查"
+    ]
+  },
+  {
+    "id": "triangle_basic",
+    "name": "三角形",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级上册",
+        "chapter": "第十一章 三角形",
+        "section": "边、角、多边形内角和"
+      }
+    ],
+    "human_explanation": "三角形是由三条线段围成的最基本多边形。",
+    "life_examples": [
+      "屋架结构",
+      "路标形状"
+    ],
+    "why_needed": "几何证明、全等、相似和三角函数都从三角形开始。",
+    "formal_definition": "三角形是由三条线段围成的最基本多边形。",
+    "term_explanations": {
+      "内角": "三角形里面的角。",
+      "高": "从顶点到对边的垂线段。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "parallel_lines",
+      "line_angle_basic"
+    ],
+    "next_ids": [
+      "congruent_triangles",
+      "similar_triangles",
+      "trigonometric_ratios"
+    ],
+    "formulas": [
+      "三角形内角和 = 180°"
+    ],
+    "visualization_methods": [
+      "拼角实验",
+      "折纸"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级上册",
+      "第十一章 三角形",
+      "边、角、多边形内角和"
+    ],
+    "understanding_route": [
+      "三条边围成",
+      "边角关系",
+      "内角和",
+      "多边形",
+      "证明"
+    ]
+  },
+  {
+    "id": "probability_tree_listing",
+    "name": "列表法与树状图",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级上册",
+        "chapter": "第二十五章 概率初步",
+        "section": "列举所有可能结果"
+      }
+    ],
+    "human_explanation": "列表法和树状图是在把所有可能结果有顺序地列全。",
+    "life_examples": [
+      "抛两枚硬币",
+      "从两个袋子各取一个球"
+    ],
+    "why_needed": "概率题常错在漏数或重复数，不是只错在公式。",
+    "formal_definition": "列表法和树状图是在把所有可能结果有顺序地列全。",
+    "term_explanations": {
+      "列举": "一个一个列出来。",
+      "重复": "同一个结果被数了多次。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "probability"
+    ],
+    "next_ids": [],
+    "formulas": [],
+    "visualization_methods": [
+      "树状图",
+      "表格"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级上册",
+      "第二十五章 概率初步",
+      "列举所有可能结果"
+    ],
+    "understanding_route": [
+      "一次选择",
+      "第二次选择",
+      "所有分支",
+      "不漏不重",
+      "算比例"
+    ]
+  },
+  {
+    "id": "rational_expression",
+    "name": "分式",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级上册",
+        "chapter": "第十五章 分式",
+        "section": "分式、分式运算和分式方程"
+      }
+    ],
+    "human_explanation": "分式像分数，只是分子或分母里可以有字母。",
+    "life_examples": [
+      "路程除以速度表示时间",
+      "工作效率问题"
+    ],
+    "why_needed": "它让学生用代数方式表达比例、速度和反比例关系。",
+    "formal_definition": "分式像分数，只是分子或分母里可以有字母。",
+    "term_explanations": {
+      "分式": "分母中含有字母的式子。",
+      "最简分式": "不能再约分的分式。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "fraction_operations",
+      "factorization"
+    ],
+    "next_ids": [
+      "inverse_proportion_function"
+    ],
+    "formulas": [
+      "A/B, B != 0"
+    ],
+    "visualization_methods": [
+      "分数类比表",
+      "关系表"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级上册",
+      "第十五章 分式",
+      "分式、分式运算和分式方程"
+    ],
+    "understanding_route": [
+      "分数",
+      "字母进入分母",
+      "分母不能为0",
+      "约分",
+      "方程"
+    ]
+  },
+  {
+    "id": "quadratic_equation",
+    "name": "一元二次方程",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级上册",
+        "chapter": "第二十一章 一元二次方程",
+        "section": "一元二次方程及其解法"
+      }
+    ],
+    "human_explanation": "一元二次方程是未知数最高次数为2的方程。",
+    "life_examples": [
+      "已知矩形面积求边长",
+      "抛物线与地面的交点"
+    ],
+    "why_needed": "面积问题、抛物线、增长模型都会自然产生二次方程。",
+    "formal_definition": "一元二次方程是未知数最高次数为2的方程。",
+    "term_explanations": {
+      "二次项": "含未知数平方的项。",
+      "根": "让方程成立的未知数取值。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "factorization",
+      "quadratic_radicals",
+      "power_scientific_notation"
+    ],
+    "next_ids": [
+      "quadratic_function"
+    ],
+    "formulas": [
+      "ax^2 + bx + c = 0"
+    ],
+    "visualization_methods": [
+      "面积模型",
+      "抛物线交点"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级上册",
+      "第二十一章 一元二次方程",
+      "一元二次方程及其解法"
+    ],
+    "understanding_route": [
+      "平方项",
+      "标准形式",
+      "因式分解",
+      "配方",
+      "公式",
+      "检验"
+    ]
+  },
+  {
+    "id": "congruent_triangles",
+    "name": "全等三角形",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级上册",
+        "chapter": "第十二章 全等三角形",
+        "section": "全等三角形的判定"
+      }
+    ],
+    "human_explanation": "全等表示两个图形形状和大小都一样，可以完全重合。",
+    "life_examples": [
+      "证明两段长度相等",
+      "判断两个零件是否一样"
+    ],
+    "why_needed": "它是初中几何证明中最重要的理由工具之一。",
+    "formal_definition": "全等表示两个图形形状和大小都一样，可以完全重合。",
+    "term_explanations": {
+      "对应": "重合时互相配对的边或角。",
+      "判定条件": "足够说明全等的一组信息。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "triangle_basic"
+    ],
+    "next_ids": [
+      "axis_symmetry",
+      "similar_triangles"
+    ],
+    "formulas": [
+      "SSS",
+      "SAS",
+      "ASA",
+      "AAS",
+      "HL"
+    ],
+    "visualization_methods": [
+      "透明纸重叠",
+      "边角标记图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级上册",
+      "第十二章 全等三角形",
+      "全等三角形的判定"
+    ],
+    "understanding_route": [
+      "重合",
+      "对应边角",
+      "需要哪些条件",
+      "判定",
+      "推出结论"
+    ]
+  },
+  {
+    "id": "pythagorean_theorem",
+    "name": "勾股定理",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级下册",
+        "chapter": "第十七章 勾股定理",
+        "section": "直角三角形三边关系"
+      }
+    ],
+    "human_explanation": "勾股定理说明直角三角形两条直角边的平方和等于斜边的平方。",
+    "life_examples": [
+      "求梯子长度",
+      "判断三角形是否为直角三角形"
+    ],
+    "why_needed": "它把图形长度和代数计算连起来，是坐标距离和三角函数的基础。",
+    "formal_definition": "勾股定理说明直角三角形两条直角边的平方和等于斜边的平方。",
+    "term_explanations": {
+      "直角边": "夹成直角的两条边。",
+      "斜边": "直角对面的那条边。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "triangle_basic",
+      "quadratic_radicals",
+      "area"
+    ],
+    "next_ids": [
+      "trigonometric_ratios",
+      "coordinate_plane"
+    ],
+    "formulas": [
+      "a^2 + b^2 = c^2"
+    ],
+    "visualization_methods": [
+      "正方形拼图",
+      "网格距离"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级下册",
+      "第十七章 勾股定理",
+      "直角三角形三边关系"
+    ],
+    "understanding_route": [
+      "直角三角形",
+      "边上的正方形",
+      "面积关系",
+      "平方和",
+      "求长度"
+    ]
+  },
+  {
+    "id": "geometric_proof_intro",
+    "name": "几何证明入门",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "七年级下册至八年级上册",
+        "chapter": "相交线与平行线 / 三角形",
+        "section": "证明理由链"
+      }
+    ],
+    "human_explanation": "证明是在把每一步为什么成立说清楚。",
+    "life_examples": [
+      "证明两个角相等",
+      "证明两条线平行"
+    ],
+    "why_needed": "初中几何不是只看图猜结论，而是要用已知条件推出结论。",
+    "formal_definition": "证明是在把每一步为什么成立说清楚。",
+    "term_explanations": {
+      "已知": "题目已经告诉你的条件。",
+      "结论": "需要说明成立的结果。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "parallel_lines",
+      "triangle_basic"
+    ],
+    "next_ids": [
+      "congruent_triangles",
+      "similar_triangles"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "理由链",
+      "图形标注"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "七年级下册至八年级上册",
+      "相交线与平行线 / 三角形",
+      "证明理由链"
+    ],
+    "understanding_route": [
+      "看图",
+      "找已知",
+      "找要证",
+      "每步有理由",
+      "写成证明"
+    ]
+  },
+  {
+    "id": "inverse_proportion_function",
+    "name": "反比例函数",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级下册",
+        "chapter": "第二十六章 反比例函数",
+        "section": "反比例函数的图象和性质"
+      }
+    ],
+    "human_explanation": "反比例函数描述两个量相乘保持不变时的变化关系。",
+    "life_examples": [
+      "总路程一定时速度和时间",
+      "面积一定时长和宽"
+    ],
+    "why_needed": "它让比例从小学算术进入坐标图像和函数语言。",
+    "formal_definition": "反比例函数描述两个量相乘保持不变时的变化关系。",
+    "term_explanations": {
+      "常数k": "乘积保持不变的那个数。",
+      "双曲线": "反比例函数常见的两支曲线图像。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "proportion",
+      "rational_expression",
+      "coordinate_plane",
+      "function_intro"
+    ],
+    "next_ids": [],
+    "formulas": [
+      "y = k/x"
+    ],
+    "visualization_methods": [
+      "表格",
+      "坐标图像"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级下册",
+      "第二十六章 反比例函数",
+      "反比例函数的图象和性质"
+    ],
+    "understanding_route": [
+      "乘积不变",
+      "表格",
+      "坐标点",
+      "曲线",
+      "实际限制"
+    ]
+  },
+  {
+    "id": "quadratic_function",
+    "name": "二次函数",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级上册",
+        "chapter": "第二十二章 二次函数",
+        "section": "二次函数的图象和性质"
+      }
+    ],
+    "human_explanation": "二次函数描述输出里含有输入平方的变化，图像通常是一条抛物线。",
+    "life_examples": [
+      "抛球高度变化",
+      "围栏面积最大问题"
+    ],
+    "why_needed": "它把方程、图像、最值和现实建模合在一起。",
+    "formal_definition": "二次函数描述输出里含有输入平方的变化，图像通常是一条抛物线。",
+    "term_explanations": {
+      "抛物线": "二次函数常见的U形图像。",
+      "顶点": "抛物线最高或最低的位置。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "linear_function",
+      "quadratic_equation",
+      "coordinate_plane"
+    ],
+    "next_ids": [],
+    "formulas": [
+      "y = ax^2 + bx + c"
+    ],
+    "visualization_methods": [
+      "坐标图像",
+      "动态表格"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级上册",
+      "第二十二章 二次函数",
+      "二次函数的图象和性质"
+    ],
+    "understanding_route": [
+      "平方变化",
+      "列表",
+      "画点",
+      "抛物线",
+      "顶点",
+      "最值"
+    ]
+  },
+  {
+    "id": "axis_symmetry",
+    "name": "轴对称",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级上册",
+        "chapter": "第十三章 轴对称",
+        "section": "轴对称与等腰三角形"
+      }
+    ],
+    "human_explanation": "轴对称是沿一条线折过去，两边能完全重合。",
+    "life_examples": [
+      "剪纸",
+      "镜面对称"
+    ],
+    "why_needed": "它把图形直觉、全等证明和等腰三角形性质连起来。",
+    "formal_definition": "轴对称是沿一条线折过去，两边能完全重合。",
+    "term_explanations": {
+      "对称轴": "折叠后两边重合的那条线。",
+      "垂直平分线": "既垂直又平分一条线段的直线。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "congruent_triangles"
+    ],
+    "next_ids": [
+      "rotation",
+      "circle"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "折纸",
+      "镜像图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级上册",
+      "第十三章 轴对称",
+      "轴对称与等腰三角形"
+    ],
+    "understanding_route": [
+      "折叠",
+      "重合",
+      "对应点",
+      "对称轴",
+      "性质证明"
+    ]
+  },
+  {
+    "id": "parallelogram",
+    "name": "平行四边形",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "八年级下册",
+        "chapter": "第十八章 平行四边形",
+        "section": "平行四边形、矩形、菱形和正方形"
+      }
+    ],
+    "human_explanation": "平行四边形是两组对边分别平行的四边形。",
+    "life_examples": [
+      "伸缩门",
+      "瓷砖图案"
+    ],
+    "why_needed": "它承接平行线和全等证明，也为面积与向量直觉打底。",
+    "formal_definition": "平行四边形是两组对边分别平行的四边形。",
+    "term_explanations": {
+      "对边": "不相邻、相对的两条边。",
+      "对角线": "连接不相邻两个顶点的线段。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "parallel_lines",
+      "congruent_triangles"
+    ],
+    "next_ids": [
+      "similar_triangles"
+    ],
+    "formulas": [
+      "平行四边形面积 = 底 x 高"
+    ],
+    "visualization_methods": [
+      "格纸",
+      "活动四边形模型"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "八年级下册",
+      "第十八章 平行四边形",
+      "平行四边形、矩形、菱形和正方形"
+    ],
+    "understanding_route": [
+      "四边形",
+      "两组平行",
+      "性质",
+      "判定",
+      "特殊平行四边形"
+    ]
+  },
+  {
+    "id": "similar_triangles",
+    "name": "相似三角形",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级下册",
+        "chapter": "第二十七章 相似",
+        "section": "相似三角形的判定和性质"
+      }
+    ],
+    "human_explanation": "相似表示形状一样、大小可以不同。",
+    "life_examples": [
+      "地图和真实地形",
+      "影子测高"
+    ],
+    "why_needed": "比例、缩放、测量和三角函数都建立在相似思想上。",
+    "formal_definition": "相似表示形状一样、大小可以不同。",
+    "term_explanations": {
+      "相似比": "对应边长度的比。",
+      "对应角": "形状匹配时相互对应的角。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "ratio",
+      "triangle_basic",
+      "congruent_triangles"
+    ],
+    "next_ids": [
+      "trigonometric_ratios"
+    ],
+    "formulas": [
+      "对应边成比例，对应角相等"
+    ],
+    "visualization_methods": [
+      "缩放图",
+      "网格图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级下册",
+      "第二十七章 相似",
+      "相似三角形的判定和性质"
+    ],
+    "understanding_route": [
+      "放大缩小",
+      "形状不变",
+      "对应角",
+      "对应边比",
+      "判定"
+    ]
+  },
+  {
+    "id": "rotation",
+    "name": "旋转",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级上册",
+        "chapter": "第二十三章 旋转",
+        "section": "图形旋转和中心对称"
+      }
+    ],
+    "human_explanation": "旋转是图形绕着一个点按固定角度转动。",
+    "life_examples": [
+      "风车转动",
+      "钟表指针"
+    ],
+    "why_needed": "它补齐初中图形变换，也帮助理解圆和对称。",
+    "formal_definition": "旋转是图形绕着一个点按固定角度转动。",
+    "term_explanations": {
+      "旋转中心": "图形围绕转动的点。",
+      "旋转角": "转过的角度。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "axis_symmetry",
+      "coordinate_plane"
+    ],
+    "next_ids": [
+      "circle"
+    ],
+    "formulas": [],
+    "visualization_methods": [
+      "旋转纸片",
+      "坐标变换图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级上册",
+      "第二十三章 旋转",
+      "图形旋转和中心对称"
+    ],
+    "understanding_route": [
+      "固定点",
+      "转动方向",
+      "角度",
+      "对应点",
+      "中心对称"
+    ]
+  },
+  {
+    "id": "trigonometric_ratios",
+    "name": "锐角三角函数",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级下册",
+        "chapter": "第二十八章 锐角三角函数",
+        "section": "正弦、余弦、正切"
+      }
+    ],
+    "human_explanation": "锐角三角函数是在直角三角形里，用边长的比描述一个角。",
+    "life_examples": [
+      "测楼高",
+      "坡度"
+    ],
+    "why_needed": "它把角度和长度联系起来，可用于测高、测距和后续数学学习。",
+    "formal_definition": "锐角三角函数是在直角三角形里，用边长的比描述一个角。",
+    "term_explanations": {
+      "正弦": "对边和斜边的比。",
+      "余弦": "邻边和斜边的比。",
+      "正切": "对边和邻边的比。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "similar_triangles",
+      "pythagorean_theorem",
+      "ratio"
+    ],
+    "next_ids": [],
+    "formulas": [
+      "sin A",
+      "cos A",
+      "tan A"
+    ],
+    "visualization_methods": [
+      "直角三角形标边",
+      "测高示意图"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级下册",
+      "第二十八章 锐角三角函数",
+      "正弦、余弦、正切"
+    ],
+    "understanding_route": [
+      "直角三角形",
+      "固定锐角",
+      "相似保证比不变",
+      "三种边长比",
+      "测量"
+    ]
+  },
+  {
+    "id": "circle",
+    "name": "圆",
+    "grade_band": "junior",
+    "textbook_positions": [
+      {
+        "curriculum": "人教版义务教育数学",
+        "grade": "九年级上册",
+        "chapter": "第二十四章 圆",
+        "section": "圆的性质、位置关系和正多边形"
+      }
+    ],
+    "human_explanation": "圆是到同一个中心点距离都相等的点组成的图形。",
+    "life_examples": [
+      "车轮",
+      "钟面"
+    ],
+    "why_needed": "圆把距离、角、对称和实际测量集中在一起。",
+    "formal_definition": "圆是到同一个中心点距离都相等的点组成的图形。",
+    "term_explanations": {
+      "圆心": "圆中间的固定点。",
+      "半径": "圆心到圆上任意一点的线段。",
+      "弦": "连接圆上两点的线段。"
+    },
+    "misconceptions": [],
+    "prerequisite_ids": [
+      "geometric_figures_intro",
+      "rotation",
+      "pythagorean_theorem"
+    ],
+    "next_ids": [
+      "trigonometric_ratios"
+    ],
+    "formulas": [
+      "C = 2πr",
+      "S = πr^2"
+    ],
+    "visualization_methods": [
+      "圆规作图",
+      "旋转半径"
+    ],
+    "ai_teaching_hints": [
+      "不要默认学生懂关键词；先解释词，再解释关系。",
+      "先问学生能不能用自己的话复述这个概念。"
+    ],
+    "exercise_types": [],
+    "school_route": [
+      "九年级上册",
+      "第二十四章 圆",
+      "圆的性质、位置关系和正多边形"
+    ],
+    "understanding_route": [
+      "定点",
+      "定长",
+      "圆周",
+      "圆心角",
+      "位置关系",
+      "计算"
+    ]
+  }
+]
