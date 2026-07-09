@@ -30,6 +30,23 @@ class TextbookPosition(BaseModel):
     section: str
 
 
+class WorkedExample(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    title: str
+    problem: str
+    steps: list[str] = Field(default_factory=list)
+    answer_check: str = ""
+
+
+class PracticeTask(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    level: str
+    prompt: str
+    goal: str
+
+
 class KnowledgePoint(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -51,6 +68,10 @@ class KnowledgePoint(BaseModel):
     exercise_types: list[str] = Field(default_factory=list)
     school_route: list[str] = Field(default_factory=list)
     understanding_route: list[str] = Field(default_factory=list)
+    conceptual_layers: list[str] = Field(default_factory=list)
+    worked_examples: list[WorkedExample] = Field(default_factory=list)
+    practice_ladder: list[PracticeTask] = Field(default_factory=list)
+    reflection_questions: list[str] = Field(default_factory=list)
 
 
 class LearningProfile(BaseModel):

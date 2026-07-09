@@ -1,14 +1,25 @@
 from __future__ import annotations
 
 from math_learning_graph.curriculum_seed import load_curriculum_knowledge_points
+from math_learning_graph.depth import with_deep_scaffold
 from math_learning_graph.models import (
     DomainOverview,
     GradeBand,
     KnowledgePoint,
     MathDomain,
+    PracticeTask,
     RoadmapItem,
     TextbookPosition,
+    WorkedExample,
 )
+
+
+def _worked(title: str, problem: str, steps: list[str], answer_check: str) -> WorkedExample:
+    return WorkedExample(title=title, problem=problem, steps=steps, answer_check=answer_check)
+
+
+def _task(level: str, prompt: str, goal: str) -> PracticeTask:
+    return PracticeTask(level=level, prompt=prompt, goal=goal)
 
 
 def load_domain_overviews() -> list[DomainOverview]:
@@ -209,6 +220,33 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             exercise_types=["判断等式", "补全等量关系"],
             school_route=["小学", "数与代数", "等量关系"],
             understanding_route=["同样多", "两边平衡", "等号", "等式"],
+            conceptual_layers=[
+                "等式的第一层意思不是计算，而是左右两边表示同一个数量。",
+                "等号像天平中间的支点：左边变了，右边也要用同样方式变，平衡才不会破坏。",
+                "等式性质就是“保持一样多”的规则，不是额外背出来的技巧。",
+            ],
+            worked_examples=[
+                _worked(
+                    "从天平到等式",
+                    "左边是5元和3元，右边是8元，为什么可以写5 + 3 = 8？",
+                    [
+                        "先看左边：5元和3元合起来是8元。",
+                        "再看右边：右边本来就是8元。",
+                        "两边虽然写法不同，但表示的钱数一样多，所以用等号连接。",
+                        "如果两边同时减去3元，左边剩5元，右边变5元，仍然一样多。",
+                    ],
+                    "能说出“两边表示同样多”，而不是只说“算出来是8”。",
+                )
+            ],
+            practice_ladder=[
+                _task("看懂", "判断 6 + 4 = 10 和 6 + 4 = 9 哪个是等式。", "先看两边是否同样多。"),
+                _task("会做", "把“左边和右边一样重”改写成一个等式。", "把语言翻译成符号。"),
+                _task("迁移", "说明为什么方程两边同时加2，解不会变。", "把等式性质迁移到方程。"),
+            ],
+            reflection_questions=[
+                "等号两边一定要长得一样吗，还是只要表示的值一样？",
+                "为什么等式两边只能做同样的操作？",
+            ],
         ),
         KnowledgePoint(
             id="arithmetic_operations",
@@ -298,6 +336,39 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             exercise_types=["识别单位1", "分数大小比较", "分数运算"],
             school_route=["小学", "数与代数", "分数"],
             understanding_route=["整体", "平均分", "取几份", "分数符号"],
+            conceptual_layers=[
+                "分数先问“这一个整体是谁”，这个整体叫单位1。",
+                "只有平均分才有分母；没有平均分，几分之几就没有稳定意义。",
+                "分母说单位1被平均分成几份，分子说取了其中几份。",
+                "同一个3/4会因为单位1不同而表示不同大小，比如一张纸的3/4和一盒彩笔的3/4。",
+            ],
+            worked_examples=[
+                _worked(
+                    "为什么先找单位1",
+                    "一盒有12支铅笔，拿走其中的3/4，拿走了多少支？",
+                    [
+                        "先确认单位1：这里的一盒12支铅笔是一个整体。",
+                        "看分母4：把12支平均分成4份，每份是3支。",
+                        "看分子3：取其中3份，所以是3 + 3 + 3 = 9支。",
+                        "最后检查：拿走的是整盒的一部分，9支小于12支，符合题意。",
+                    ],
+                    "如果能先说出单位1是12支，而不是直接算3 ÷ 4，就抓住了分数意义。",
+                )
+            ],
+            practice_ladder=[
+                _task("看懂", "说出“全班人数的2/5”里单位1是什么。", "先找整体。"),
+                _task("会做", "用图表示12的3/4，并写出每一份是多少。", "把平均分和计算连起来。"),
+                _task(
+                    "迁移",
+                    "比较一张大纸的1/2和一张小纸的3/4，能不能只看分数大小。",
+                    "理解单位1会影响实际大小。",
+                ),
+            ],
+            reflection_questions=[
+                "这道题的单位1是谁？它有没有变过？",
+                "分母为什么必须来自平均分？",
+                "我的答案和整体大小比起来合理吗？",
+            ],
         ),
         KnowledgePoint(
             id="quantity_relationship",
@@ -368,6 +439,33 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                 "整理未知数",
                 "移项简写",
             ],
+            conceptual_layers=[
+                "移项的底层不是“搬过去变号”，而是等式两边同时加或减同一项。",
+                "所谓变号，是把完整操作压缩成一步写法；如果还原出来，就不会觉得神秘。",
+                "移项只允许移动加减项，先要看清楚项的边界，不能把乘法或括号里的局部硬搬。",
+            ],
+            worked_examples=[
+                _worked(
+                    "把移项还原成等式性质",
+                    "x + 3 = 8 为什么能变成 x = 8 - 3？",
+                    [
+                        "目标是单独留下x，所以要把左边的+3去掉。",
+                        "等式两边同时减3：x + 3 - 3 = 8 - 3。",
+                        "左边+3和-3抵消，得到x = 8 - 3。",
+                        "写快一点，就像把+3移到右边变成-3，但背后仍然是两边同时减3。",
+                    ],
+                    "能把“移项变号”还原成“两边同时减3”，才算真的懂。",
+                )
+            ],
+            practice_ladder=[
+                _task("看懂", "把 x + 5 = 12 的移项步骤写成两边同时减5。", "先还原操作。"),
+                _task("会做", "解 2x - 7 = 9，并写出哪一步用了移项。", "把规则用于解方程。"),
+                _task("迁移", "判断 3(x + 2) = 15 能不能直接把+2移出去。", "识别项和括号边界。"),
+            ],
+            reflection_questions=[
+                "我移动的是一个完整的项吗？",
+                "如果不用“移项”这个词，我能写出两边同操作吗？",
+            ],
         ),
         KnowledgePoint(
             id="linear_equation_one_variable",
@@ -413,6 +511,49 @@ def load_knowledge_points() -> list[KnowledgePoint]:
             exercise_types=["列方程", "解方程", "检验解"],
             school_route=["初中", "方程", "一元一次方程"],
             understanding_route=["未知数", "等量关系", "列式", "等式变形", "求解"],
+            conceptual_layers=[
+                "一元一次方程先来自一个现实或数学里的等量关系，不是从ax+b=0突然开始。",
+                "一元表示只有一个需要求的未知量；一次表示这个未知量只按普通倍数出现，没有平方。",
+                "解方程的目标是把未知数单独留下，同时每一步都保持原来等式的解不变。",
+                "检验不是形式动作，而是把求出的数放回原问题，看等量关系是否真的成立。",
+            ],
+            worked_examples=[
+                _worked(
+                    "从应用题到方程",
+                    "一本练习册8元，买了x本又买一支2元笔，一共26元，求x。",
+                    [
+                        "先找未知量：不知道买了几本练习册，所以设为x本。",
+                        "翻译数量关系：练习册总价是8x元，再加笔2元，一共26元。",
+                        "列出等式：8x + 2 = 26。",
+                        "两边同时减2，得到8x = 24。",
+                        "两边同时除以8，得到x = 3。",
+                        "检验：3本练习册24元，加2元是26元，符合题意。",
+                    ],
+                    "能说清楚8x、+2、=26各自来自题目哪句话。",
+                )
+            ],
+            practice_ladder=[
+                _task(
+                    "看懂",
+                    "指出 5x + 4 = 19 里未知数、常数和等号两边各表示什么。",
+                    "读懂方程结构。",
+                ),
+                _task(
+                    "会做",
+                    "解 3x - 6 = 12，并每一步写出等式两边做了什么。",
+                    "建立等价变形习惯。",
+                ),
+                _task(
+                    "迁移",
+                    "把“总价=单价x数量+固定费用”改写成一个一元一次方程。",
+                    "从公式迁移到建模。",
+                ),
+            ],
+            reflection_questions=[
+                "我设的未知数到底代表什么，有没有单位？",
+                "方程左右两边是不是在比较同一种量？",
+                "解出来以后代回原题是否合理？",
+            ],
         ),
         KnowledgePoint(
             id="linear_equation_two_variables",
@@ -494,10 +635,53 @@ def load_knowledge_points() -> list[KnowledgePoint]:
                 "函数表达式",
                 "正式数学定义",
             ],
+            conceptual_layers=[
+                "函数先描述变化：一个量变了，另一个量按照某种规则跟着变。",
+                "输入是先给的量，输出是跟着确定下来的量；同一个输入只能对应一个输出。",
+                "表格、图像、表达式是在说同一个关系的三种语言，不是三块互不相关的内容。",
+                "一次函数里的k表示稳定变化速度，b表示输入为0时的起点。",
+            ],
+            worked_examples=[
+                _worked(
+                    "从打车费看函数",
+                    "起步价8元，每多1千米加2元，路程x千米时费用y元。",
+                    [
+                        "先找变化的两个量：路程x会变，费用y会跟着变。",
+                        "找规则：不管走多远，先有8元起步价。",
+                        "每多1千米加2元，所以变化部分是2x。",
+                        "写成表达式：y = 2x + 8。",
+                        "检查唯一对应：给定x=3千米，费用只能是14元，不会同时有两个费用。",
+                    ],
+                    "能把同一个关系画成表格、点到图像上，并说出每个点是什么意思。",
+                )
+            ],
+            practice_ladder=[
+                _task(
+                    "看懂",
+                    "判断“一个人对应一个身份证号”是不是函数关系。",
+                    "先看输入是否只有一个输出。",
+                ),
+                _task("会做", "根据y = 2x + 8填出x为0、1、2、3时的表格。", "连接表达式和表格。"),
+                _task(
+                    "迁移",
+                    "看一条直线图像，说出起点和每增加1个单位的变化量。",
+                    "从图像读出关系。",
+                ),
+            ],
+            reflection_questions=[
+                "我能不能用自己的话说明函数表示哪两个量的关系？",
+                "我能不能说出这道题为什么要用它，而不是只因为题目在讲函数？",
+                "这里谁是输入，谁是输出？",
+                "同一个输入会不会出现两个不同输出？",
+                "我能不能把表格、图像、表达式互相翻译？",
+            ],
         ),
     ]
 
-    return [*core_points, *load_curriculum_knowledge_points()]
+    return [
+        with_deep_scaffold(point)
+        for point in [*core_points, *load_curriculum_knowledge_points()]
+    ]
 
 
 def load_seed_knowledge_points() -> list[KnowledgePoint]:

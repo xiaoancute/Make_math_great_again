@@ -135,6 +135,10 @@ private data class Topic(
     val exerciseTypes: List<String>,
     val schoolRoute: List<String>,
     val route: List<String>,
+    val conceptualLayers: List<String>,
+    val workedExamples: List<WorkedExample>,
+    val practiceLadder: List<PracticeTask>,
+    val reflectionQuestions: List<String>,
 )
 
 private data class TextbookPosition(
@@ -142,6 +146,19 @@ private data class TextbookPosition(
     val grade: String,
     val chapter: String,
     val section: String,
+)
+
+private data class WorkedExample(
+    val title: String,
+    val problem: String,
+    val steps: List<String>,
+    val answerCheck: String,
+)
+
+private data class PracticeTask(
+    val level: String,
+    val prompt: String,
+    val goal: String,
 )
 
 private data class TopicMemory(
@@ -1466,6 +1483,16 @@ private fun TopicDetail(
                 ExplanationText(topic.explanationText())
             }
         }
+        if (
+            topic.conceptualLayers.isNotEmpty() ||
+            topic.workedExamples.isNotEmpty() ||
+            topic.practiceLadder.isNotEmpty() ||
+            topic.reflectionQuestions.isNotEmpty()
+        ) {
+            item {
+                DeepLearningPanel(topic = topic)
+            }
+        }
         item {
             DetailPanel(title = "关键词") {
                 if (topic.terms.isEmpty()) {
@@ -1542,6 +1569,48 @@ private fun TopicDetail(
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+@Composable
+private fun DeepLearningPanel(topic: Topic) {
+    DetailPanel(title = "深度理解") {
+        DenseTextBlock("分层解释", topic.conceptualLayers)
+        topic.workedExamples.forEach { example ->
+            WorkedExampleBlock(example)
+        }
+        if (topic.practiceLadder.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("练习阶梯", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                topic.practiceLadder.forEach { task ->
+                    PracticeTaskRow(task)
+                }
+            }
+        }
+        DenseTextBlock("自查问题", topic.reflectionQuestions)
+    }
+}
+
+@Composable
+private fun WorkedExampleBlock(example: WorkedExample) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(example.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        BodyText(example.problem)
+        example.steps.forEachIndexed { index, step ->
+            BodyText("${index + 1}. $step")
+        }
+        if (example.answerCheck.isNotBlank()) {
+            BodyText("检查：${example.answerCheck}")
+        }
+    }
+}
+
+@Composable
+private fun PracticeTaskRow(task: PracticeTask) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(task.level, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        BodyText(task.prompt)
+        BodyText("目标：${task.goal}")
     }
 }
 
@@ -1905,6 +1974,9 @@ private fun Topic.explanationText(): String {
     if (route.isNotEmpty()) {
         paragraphs += "理解顺序是：${route.joinToString("，然后")}。"
     }
+    if (conceptualLayers.isNotEmpty()) {
+        paragraphs += "先分层理解：${conceptualLayers.joinToString(" ")}"
+    }
     val definition = formalDefinition.ifBlank { human }
     if (definition.isNotBlank() && definition != human) {
         paragraphs += "课本里的正式说法是：$definition"
@@ -2122,6 +2194,10 @@ private fun JSONObject.toTopic(): Topic = Topic(
     exerciseTypes = optJSONArray("exercise_types").toStringList(),
     schoolRoute = optJSONArray("school_route").toStringList(),
     route = optJSONArray("understanding_route").toStringList(),
+    conceptualLayers = optJSONArray("conceptual_layers").toStringList(),
+    workedExamples = optJSONArray("worked_examples").toWorkedExamples(),
+    practiceLadder = optJSONArray("practice_ladder").toPracticeTasks(),
+    reflectionQuestions = optJSONArray("reflection_questions").toStringList(),
 )
 
 private fun JSONArray?.toTextbookPositions(): List<TextbookPosition> {
@@ -2140,6 +2216,31 @@ private fun JSONArray?.toTextbookPositions(): List<TextbookPosition> {
 private fun JSONArray?.toStringList(): List<String> {
     if (this == null) return emptyList()
     return List(length()) { index -> optString(index) }
+}
+
+private fun JSONArray?.toWorkedExamples(): List<WorkedExample> {
+    if (this == null) return emptyList()
+    return List(length()) { index ->
+        val item = optJSONObject(index) ?: JSONObject()
+        WorkedExample(
+            title = item.optString("title"),
+            problem = item.optString("problem"),
+            steps = item.optJSONArray("steps").toStringList(),
+            answerCheck = item.optString("answer_check"),
+        )
+    }
+}
+
+private fun JSONArray?.toPracticeTasks(): List<PracticeTask> {
+    if (this == null) return emptyList()
+    return List(length()) { index ->
+        val item = optJSONObject(index) ?: JSONObject()
+        PracticeTask(
+            level = item.optString("level"),
+            prompt = item.optString("prompt"),
+            goal = item.optString("goal"),
+        )
+    }
 }
 
 private fun JSONObject?.toStringMap(): Map<String, String> {

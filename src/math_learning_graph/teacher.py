@@ -12,6 +12,31 @@ def _topic_names(topic_ids: list[str], topic_names: dict[str, str]) -> list[str]
     return [topic_names.get(topic_id, topic_id) for topic_id in topic_ids]
 
 
+def _numbered(values: list[str]) -> str:
+    return "\n".join(f"{index}. {value}" for index, value in enumerate(values, start=1))
+
+
+def _worked_examples_text(point: KnowledgePoint) -> str:
+    if not point.worked_examples:
+        return "暂无固定例题；先让学生自己举例，再拆步骤。"
+    lines: list[str] = []
+    for example in point.worked_examples[:2]:
+        steps = "；".join(example.steps)
+        lines.append(
+            f"{example.title}：{example.problem}。步骤：{steps}。检查：{example.answer_check}"
+        )
+    return "\n".join(lines)
+
+
+def _practice_ladder_text(point: KnowledgePoint) -> str:
+    if not point.practice_ladder:
+        return "看懂：解释概念；会做：完成课本例题；迁移：换情境判断。"
+    return "\n".join(
+        f"- {task.level}：{task.prompt}（目标：{task.goal}）"
+        for task in point.practice_ladder
+    )
+
+
 def _learning_memory_text(
     learning_profile: LearningProfile | None,
     topic_names: dict[str, str] | None,
@@ -69,6 +94,10 @@ def build_teacher_prompt(
     examples = "；".join(point.life_examples)
     misconceptions = "；".join(point.misconceptions)
     hints = "；".join(point.ai_teaching_hints)
+    conceptual_layers = "；".join(point.conceptual_layers)
+    worked_examples = _worked_examples_text(point)
+    practice_ladder = _practice_ladder_text(point)
+    reflection_questions = "；".join(point.reflection_questions)
     terms = "；".join(
         f"{term}：{explanation}" for term, explanation in point.term_explanations.items()
     )
@@ -98,6 +127,10 @@ def build_teacher_prompt(
 生活例子：{examples}
 为什么需要：{point.why_needed}
 正式定义：{point.formal_definition}
+分层理解：{conceptual_layers}
+例题拆解：{worked_examples}
+练习阶梯：{practice_ladder}
+自查问题：{reflection_questions}
 常见错误：{misconceptions}
 术语解释：{terms}
 讲解提示：{hints}
@@ -129,6 +162,14 @@ def build_teacher_answer(
         point.visualization_methods,
         "先画图、列表或用实物摆出来。",
     )
+    conceptual_layers = _numbered(point.conceptual_layers) or point.human_explanation
+    worked_examples = _worked_examples_text(point)
+    practice_ladder = _practice_ladder_text(point)
+    reflection_questions = point.reflection_questions or [
+        "我能不能用自己的话说明它表示什么？",
+        "我能不能举一个自己的例子？",
+        "我能不能说出这道题为什么要用它？",
+    ]
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
 
     return f"""你问的是：{question}
@@ -141,16 +182,23 @@ def build_teacher_answer(
 可以按这个顺序学：{route}。
 如果觉得抽象，可以先用这些方式表示出来：{visuals}
 
+分层理解：
+{conceptual_layers}
+
 关键词：
 {terms}
 
 例子：{examples}
+
+例题拆解：
+{worked_examples}
+
+练习阶梯：
+{practice_ladder}
 
 课本里的正式说法：{point.formal_definition}
 
 常见误会：{misconceptions}
 
 你可以用这三个问题检查自己是否真的懂了：
-1. 我能不能用自己的话说明它表示什么？
-2. 我能不能举一个自己的例子？
-3. 我能不能说出这道题为什么要用它？"""
+{_numbered(reflection_questions[:3])}"""

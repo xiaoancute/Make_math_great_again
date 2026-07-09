@@ -46,6 +46,17 @@ def test_service_includes_first_batch_textbook_detail_nodes():
     assert "function_graph_reading" in topic_ids
 
 
+def test_all_topics_include_deep_learning_scaffold():
+    service = MathLearningService.create_default()
+
+    topics = service.list_topics()
+
+    assert all(topic.conceptual_layers for topic in topics)
+    assert all(topic.worked_examples for topic in topics)
+    assert all(topic.practice_ladder for topic in topics)
+    assert all(topic.reflection_questions for topic in topics)
+
+
 def test_domain_and_roadmap_endpoints_return_framework():
     client = TestClient(create_app())
 

@@ -2,7 +2,19 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
-from math_learning_graph.models import GradeBand, KnowledgePoint, TextbookPosition
+from math_learning_graph.depth import (
+    default_layers,
+    default_practice_ladder,
+    default_reflection_questions,
+    default_worked_examples,
+)
+from math_learning_graph.models import (
+    GradeBand,
+    KnowledgePoint,
+    PracticeTask,
+    TextbookPosition,
+    WorkedExample,
+)
 
 CURRICULUM = "人教版义务教育数学"
 
@@ -35,8 +47,13 @@ def _point(
     misconceptions: Iterable[str] = (),
     visuals: Iterable[str] = (),
     exercise_types: Iterable[str] = (),
+    conceptual_layers: Iterable[str] = (),
+    worked_examples: Iterable[WorkedExample] = (),
+    practice_ladder: Iterable[PracticeTask] = (),
+    reflection_questions: Iterable[str] = (),
 ) -> KnowledgePoint:
-    return KnowledgePoint(
+    route_items = list(route)
+    point = KnowledgePoint(
         id=topic_id,
         name=name,
         grade_band=grade_band,
@@ -57,7 +74,16 @@ def _point(
         ],
         exercise_types=list(exercise_types),
         school_route=[grade, chapter, section],
-        understanding_route=list(route) or [name, "用人话解释", "图形或生活例子", "符号表达"],
+        understanding_route=route_items or [name, "用人话解释", "图形或生活例子", "符号表达"],
+    )
+    return point.model_copy(
+        update={
+            "conceptual_layers": list(conceptual_layers) or default_layers(point),
+            "worked_examples": list(worked_examples) or default_worked_examples(point),
+            "practice_ladder": list(practice_ladder) or default_practice_ladder(name),
+            "reflection_questions": list(reflection_questions)
+            or default_reflection_questions(name),
+        },
     )
 
 
