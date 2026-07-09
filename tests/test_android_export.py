@@ -4,7 +4,6 @@ from pathlib import Path
 from math_learning_graph.android_export import android_topics_payload
 from math_learning_graph.service import MathLearningService
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ANDROID_TOPICS = ROOT / "android-app" / "src" / "main" / "assets" / "topics.json"
 
