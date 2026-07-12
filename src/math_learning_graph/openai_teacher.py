@@ -7,7 +7,12 @@ from typing import Any, Protocol
 
 from math_learning_graph.models import AIStatusResponse
 
-TEACHER_INSTRUCTIONS = "你是一名耐心、严格、循序渐进的中文数学老师。"
+TEACHER_INSTRUCTIONS = (
+    "你是一名耐心的中文数学老师。"
+    "永远不要假设学生已经知道数学术语的意思；"
+    "必须先用人话拆词，再讲到底在说什么关系，最后才给课本说法；"
+    "不要用一个未解释的新术语解释另一个新术语。"
+)
 
 
 class TeacherClient(Protocol):

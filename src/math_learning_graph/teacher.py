@@ -2,6 +2,14 @@ from __future__ import annotations
 
 from math_learning_graph.models import KnowledgePoint, LearningProfile, TopicMemoryInput
 
+# Fixed section headers — tests and clients rely on this order.
+SECTION_TERMS = "【先弄懂这些词】"
+SECTION_WHAT = "【到底在讲什么】"
+SECTION_WHY = "【为什么会出现】"
+SECTION_EXAMPLE = "【举个例子】"
+SECTION_FORMAL = "【课本会怎么说】"
+SECTION_CHECK = "【自己检查】"
+
 
 def _join_or_default(values: list[str], default: str) -> str:
     text = "；".join(value for value in values if value)
@@ -16,9 +24,22 @@ def _numbered(values: list[str]) -> str:
     return "\n".join(f"{index}. {value}" for index, value in enumerate(values, start=1))
 
 
+def term_lines(point: KnowledgePoint) -> list[str]:
+    """Plain-language glossary lines; never empty for a teachable topic."""
+    if point.term_explanations:
+        return [f"{term}：{explanation}" for term, explanation in point.term_explanations.items()]
+    # Fallback still refuses to dump the formal name alone.
+    plain = point.human_explanation or "先问：这个词在题里指什么、在比什么、在算什么。"
+    return [f"{point.name}：{plain}"]
+
+
+def terms_block(point: KnowledgePoint, bullet: str = "- ") -> str:
+    return "\n".join(f"{bullet}{line}" for line in term_lines(point))
+
+
 def _worked_examples_text(point: KnowledgePoint) -> str:
     if not point.worked_examples:
-        return "暂无固定例题；先让学生自己举例，再拆步骤。"
+        return "没有固定例题时：先让学生自己举一个例子，再说清已知和所求，再动笔。"
     lines: list[str] = []
     for example in point.worked_examples[:2]:
         steps = "；".join(example.steps)
@@ -30,7 +51,7 @@ def _worked_examples_text(point: KnowledgePoint) -> str:
 
 def _practice_ladder_text(point: KnowledgePoint) -> str:
     if not point.practice_ladder:
-        return "看懂：解释概念；会做：完成课本例题；迁移：换情境判断。"
+        return "看懂：解释关键词；会做：完成课本例题；迁移：换情境判断。"
     return "\n".join(
         f"- {task.level}：{task.prompt}（目标：{task.goal}）"
         for task in point.practice_ladder
@@ -98,41 +119,52 @@ def build_teacher_prompt(
     worked_examples = _worked_examples_text(point)
     practice_ladder = _practice_ladder_text(point)
     reflection_questions = "；".join(point.reflection_questions)
-    terms = "；".join(
-        f"{term}：{explanation}" for term, explanation in point.term_explanations.items()
-    )
+    terms = "；".join(term_lines(point))
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
 
     return f"""你是一名面向{student_age}岁学生的数学老师。
+
+产品目标：让学生不在术语上犯困，先听懂「到底在讲什么」，再碰课本说法。
 
 讲解主题：{point.name}
 学生问题：{question}
 {learning_memory}
 
-讲解规则：
-1. 先讲直觉，再讲术语，最后才给正式定义。
-2. 不要直接给最终答案，也不要只列公式。
-3. 如果学生答错，先判断错误原因，再给一个更小的问题引导。
-4. 每次解释都要说明这个概念为什么存在，以及以后会用在哪里。
-5. 学生忘记术语时，先用人话解释恢复记忆。
-6. 不要假设学生理解术语。
-   第一次使用数学术语前，先用人话解释它在说什么。
-7. 不要用一个新术语解释另一个新术语。
-   如果必须用前置概念，先退回去解释前置概念。
-8. 学生困惑时，先问“你卡在哪个词，还是卡在哪一步？”，再继续讲。
-9. 如果掌握记录显示前置知识薄弱，先补前置知识，再回到当前问题。
+输出硬顺序（必须按这个写，不能跳）：
+{SECTION_TERMS}
+{SECTION_WHAT}
+{SECTION_WHY}
+{SECTION_EXAMPLE}
+{SECTION_FORMAL}
+{SECTION_CHECK}
 
-推荐理解路线：{route}
-入口解释：{point.human_explanation}
+讲解规则：
+1. 永远不要假设学生已经知道你用的数学术语是什么意思。
+2. 第一次使用任何数学术语前，必须先用人话解释它在说什么。
+3. 不要用一个未解释的新术语解释另一个新术语。
+4. 先拆词，再讲关系，最后才给正式定义和公式。
+5. 不要直接给最终答案，也不要只列公式。
+6. 如果学生答错，先判断是卡在词还是卡在步骤，再给一个更小的问题。
+7. 每次解释都要说明这个概念为什么存在，以及以后会用在哪里。
+8. 如果掌握记录显示前置薄弱，先补前置词与关系，再回到当前问题。
+9. 学生困惑时，先问「你卡在哪个词，还是卡在哪一步？」
+
+材料（讲解时按硬顺序使用，术语必须最先出现）：
+{SECTION_TERMS}
+{terms}
+{SECTION_WHAT}
+{point.human_explanation}
+{SECTION_WHY}
+{point.why_needed}
 生活例子：{examples}
-为什么需要：{point.why_needed}
-正式定义：{point.formal_definition}
+理解路线：{route}
 分层理解：{conceptual_layers}
 例题拆解：{worked_examples}
 练习阶梯：{practice_ladder}
 自查问题：{reflection_questions}
 常见错误：{misconceptions}
-术语解释：{terms}
+{SECTION_FORMAL}
+{point.formal_definition}
 讲解提示：{hints}
 """
 
@@ -145,60 +177,69 @@ def build_teacher_answer(
     topic_names: dict[str, str] | None = None,
     memory_records: list[TopicMemoryInput] | None = None,
 ) -> str:
-    route = " -> ".join(point.understanding_route)
-    terms = "\n".join(
-        f"- {term}：{explanation}"
-        for term, explanation in point.term_explanations.items()
-    )
+    """Deterministic local teacher: terms first, formal definition last among core blocks."""
+    _ = student_age  # API symmetry with build_teacher_prompt
     examples = _join_or_default(
         point.life_examples,
-        "先自己举一个能数、能分、能比较的例子。",
+        "自己找一个能数、能分、能比的例子。",
     )
     misconceptions = _join_or_default(
         point.misconceptions,
-        "只记住一句话或公式，但说不出它在解决什么问题。",
+        "只记住说法或公式，却说不出它在处理什么关系。",
     )
     visuals = _join_or_default(
         point.visualization_methods,
-        "先画图、列表或用实物摆出来。",
+        "画图、列表或用实物摆一摆。",
     )
-    conceptual_layers = _numbered(point.conceptual_layers) or point.human_explanation
     worked_examples = _worked_examples_text(point)
-    practice_ladder = _practice_ladder_text(point)
     reflection_questions = point.reflection_questions or [
-        "我能不能用自己的话说明它表示什么？",
-        "我能不能举一个自己的例子？",
-        "我能不能说出这道题为什么要用它？",
+        "这些词我能用人话讲吗？",
+        "我能说出这节到底在讲什么关系吗？",
+        "我能举一个自己的例子吗？",
     ]
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
+    formal = point.formal_definition or point.human_explanation
+    what = point.human_explanation or f"这节在讲和「{point.name}」有关的一种数量或图形关系。"
+    why = point.why_needed or "它是为了处理一类具体麻烦才出现的，不是凭空背的标题。"
+
+    memory_block = f"\n{learning_memory}\n" if learning_memory else "\n"
 
     return f"""你问的是：{question}
-{learning_memory}
+{memory_block}{SECTION_TERMS}
+{terms_block(point)}
 
-{point.name}可以先这样理解：{point.human_explanation}
+{SECTION_WHAT}
+{what}
 
-它要解决的问题是：{point.why_needed}
+{SECTION_WHY}
+{why}
 
-可以按这个顺序学：{route}。
-如果觉得抽象，可以先用这些方式表示出来：{visuals}
+{SECTION_EXAMPLE}
+{examples}
+如果觉得抽象，可以：{visuals}
 
-分层理解：
-{conceptual_layers}
-
-关键词：
-{terms}
-
-例子：{examples}
-
-例题拆解：
+跟着做一做：
 {worked_examples}
 
-练习阶梯：
-{practice_ladder}
+{SECTION_FORMAL}
+{formal}
 
-课本里的正式说法：{point.formal_definition}
+容易混的地方：{misconceptions}
 
-常见误会：{misconceptions}
-
-你可以用这三个问题检查自己是否真的懂了：
+{SECTION_CHECK}
 {_numbered(reflection_questions[:3])}"""
+
+
+def answer_section_order(answer: str) -> list[str]:
+    """Return section headers in the order they appear (for tests)."""
+    headers = [
+        SECTION_TERMS,
+        SECTION_WHAT,
+        SECTION_WHY,
+        SECTION_EXAMPLE,
+        SECTION_FORMAL,
+        SECTION_CHECK,
+    ]
+    found = [(answer.find(header), header) for header in headers if header in answer]
+    found.sort(key=lambda item: item[0])
+    return [header for _, header in found]

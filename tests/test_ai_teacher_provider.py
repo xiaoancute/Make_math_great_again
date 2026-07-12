@@ -49,7 +49,8 @@ def test_service_uses_configured_ai_teacher_with_learning_memory():
 
     assert response.answer == "这是 AI 生成的讲解"
     assert teacher.prompts
-    assert "不要假设学生理解术语" in teacher.prompts[0]
+    assert "不要假设学生已经知道" in teacher.prompts[0]
+    assert "【先弄懂这些词】" in teacher.prompts[0]
     assert "等式：掌握等级 3" in teacher.prompts[0]
     assert "移项：掌握等级 1" in teacher.prompts[0]
 

@@ -1,6 +1,10 @@
 # Make Math Great Again
 
-Backend-first framework plus a first usable Android prototype for a
+**Product meaning:** help students stop freezing on math terms, and first
+understand *what relationship is being talked about*, before formal textbook
+language. See [`docs/product.md`](docs/product.md).
+
+Backend-first framework plus a thin Android learning shell for a
 primary-to-junior-high math learning app.
 
 The project focuses on the reusable core:
@@ -12,6 +16,13 @@ The project focuses on the reusable core:
 - spaced review scheduling
 - thin FastAPI endpoints
 - Android 16 prototype that loads topics, tracks local mastery, and asks the teacher
+
+Open-source projects used as design references are tracked in
+[`docs/open-source-reference.md`](docs/open-source-reference.md). The short version:
+borrow learning memory and graph ideas from MathClaw, graph structure ideas from
+math-knowledge-graph, and AI tutor interaction patterns from MathVoice, while keeping
+MMGA focused on Chinese curriculum alignment, prerequisite diagnosis, and concept
+understanding rather than homework solving.
 
 The Android app lives in `android-app/`. It uses Kotlin, Jetpack Compose, and Material 3.
 The app keeps domain logic in the backend: it lists knowledge points, opens a detail page,

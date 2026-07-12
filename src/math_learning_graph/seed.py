@@ -250,6 +250,17 @@ def load_roadmap_items() -> list[RoadmapItem]:
 def load_knowledge_points() -> list[KnowledgePoint]:
     """Return textbook-aligned seed knowledge points used by the in-memory service."""
 
+    points = _merge_knowledge_points()
+    missing_terms = [point.id for point in points if not point.term_explanations]
+    if missing_terms:
+        raise ValueError(
+            "every topic needs term_explanations (plain language first): "
+            + ", ".join(missing_terms)
+        )
+    return points
+
+
+def _merge_knowledge_points() -> list[KnowledgePoint]:
     core_points = [
         KnowledgePoint(
             id="equality",
