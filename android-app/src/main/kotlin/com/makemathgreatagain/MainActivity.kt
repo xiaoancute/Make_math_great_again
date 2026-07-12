@@ -93,6 +93,7 @@ private const val LEGACY_MASTERED_TOPICS = "mastered_topics"
 private const val TOPIC_MEMORIES = "topic_memories"
 private const val API_BASE_URL_PREF = "api_base_url"
 private const val AI_MODEL_PREF = "ai_model"
+private const val PLACEMENT_PREF = "placement_result"
 private const val DEFAULT_API_BASE_URL = "http://10.0.2.2:8000"
 private const val OFFLINE_TOPICS_ASSET = "topics.json"
 private const val DAY_MS = 24L * 60L * 60L * 1000L
@@ -186,6 +187,25 @@ private data class TopicMemory(
     fun isDue(now: Long): Boolean = isMastered && (nextReviewAt ?: 0L) <= now
 }
 
+private data class PlacementResult(
+    val levelLabel: String,
+    val levelRank: Int,
+    val starterTopicId: String,
+    val knownTopicIds: List<String>,
+    val weakTopicIds: List<String>,
+    val summary: String,
+    val correctCount: Int,
+    val totalCount: Int,
+)
+
+private data class DiagnosticItem(
+    val id: String,
+    val prompt: String,
+    val choices: List<String>,
+    val topicId: String,
+    val correctIndex: Int,
+)
+
 private data class UiState(
     val loading: Boolean = true,
     val topics: List<Topic> = emptyList(),
@@ -198,6 +218,8 @@ private data class UiState(
     val dataSource: String = "离线",
     val syncWarning: String? = null,
     val showSettings: Boolean = false,
+    val placement: PlacementResult? = null,
+    val showPlacement: Boolean = false,
 ) {
     val mastered: Set<String>
         get() = memories.values.filter { it.isMastered }.map { it.topicId }.toSet()
@@ -230,6 +252,7 @@ private fun MmgaApp() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val offlineTopics = remember { loadOfflineTopics(context) }
+    val savedPlacement = remember { loadPlacement(context) }
     var state by remember {
         mutableStateOf(
             UiState(
@@ -238,6 +261,8 @@ private fun MmgaApp() {
                 memories = loadTopicMemories(context),
                 apiBaseUrl = loadApiBaseUrl(context),
                 aiModel = loadAiModel(context),
+                placement = savedPlacement,
+                showPlacement = savedPlacement == null,
             ),
         )
     }
@@ -275,10 +300,13 @@ private fun MmgaApp() {
                 onReload = { scope.launch { loadTopics() } },
                 onSelect = { state = state.copy(selected = it, answer = "", showSettings = false) },
                 onBack = {
-                    if (state.showSettings) {
-                        state = state.copy(showSettings = false)
-                    } else {
-                        state = state.copy(selected = null, answer = "")
+                    when {
+                        state.showPlacement && state.placement != null ->
+                            state = state.copy(showPlacement = false)
+                        state.showSettings ->
+                            state = state.copy(showSettings = false)
+                        else ->
+                            state = state.copy(selected = null, answer = "")
                     }
                 },
                 onOpenSettings = { state = state.copy(showSettings = true, selected = null) },
@@ -305,11 +333,19 @@ private fun MmgaApp() {
                                 state.aiModel,
                                 state.mastered,
                                 state.memories.values.toList(),
+                                state.placement?.levelLabel,
+                                state.placement?.summary,
                             ),
                         )
                     } catch (_: Exception) {
                         state.copy(
-                            answer = offlineTeacherAnswer(topic, question, state.topics, state.mastered),
+                            answer = offlineTeacherAnswer(
+                                topic,
+                                question,
+                                state.topics,
+                                state.mastered,
+                                state.placement,
+                            ),
                         )
                     }
                 },
@@ -338,6 +374,39 @@ private fun MmgaApp() {
                         }
                     }
                 },
+                onStartPlacement = {
+                    state = state.copy(showPlacement = true, showSettings = false, selected = null)
+                },
+                onPlacementFinished = { result ->
+                    savePlacement(context, result)
+                    val memories = state.memories.toMutableMap()
+                    val now = System.currentTimeMillis()
+                    result.knownTopicIds.forEach { id ->
+                        memories[id] = TopicMemory(
+                            topicId = id,
+                            masteryLevel = 3,
+                            firstSeenAt = memories[id]?.firstSeenAt ?: now,
+                            lastReviewedAt = now,
+                            nextReviewAt = now + DAY_MS,
+                            reviewCount = (memories[id]?.reviewCount ?: 0) + 1,
+                            lapseCount = memories[id]?.lapseCount ?: 0,
+                        )
+                    }
+                    result.weakTopicIds.forEach { id ->
+                        if (id !in result.knownTopicIds) {
+                            memories[id] = memories[id].markOpen(id)
+                        }
+                    }
+                    saveTopicMemories(context, memories)
+                    val starter = state.topics.firstOrNull { it.id == result.starterTopicId }
+                    state = state.copy(
+                        placement = result,
+                        showPlacement = false,
+                        memories = memories,
+                        selected = starter,
+                        answer = "",
+                    )
+                },
             )
         }
     }
@@ -357,13 +426,16 @@ private fun AppScreen(
     onSaveApiBaseUrl: (String) -> Unit,
     onSaveAiModel: (String) -> Unit,
     onCheckAi: (String, String) -> Unit,
+    onStartPlacement: () -> Unit,
+    onPlacementFinished: (PlacementResult) -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(MainTab.Today) }
     val inLesson = state.selected != null
     val inSettings = state.showSettings
+    val inPlacement = state.showPlacement
 
     BackHandler(enabled = inLesson || inSettings, onBack = onBack)
-    BackHandler(enabled = !inLesson && !inSettings && tab != MainTab.Today) {
+    BackHandler(enabled = !inLesson && !inSettings && !inPlacement && tab != MainTab.Today) {
         tab = MainTab.Today
     }
 
@@ -374,6 +446,7 @@ private fun AppScreen(
                 title = {
                     Text(
                         when {
+                            inPlacement -> "摸底"
                             inSettings -> "设置"
                             inLesson -> "学这个"
                             else -> "数学"
@@ -382,14 +455,14 @@ private fun AppScreen(
                     )
                 },
                 navigationIcon = {
-                    if (inLesson || inSettings) {
+                    if (inLesson || inSettings || (inPlacement && state.placement != null)) {
                         IconButton(onClick = onBack) {
                             Icon(Icons.Filled.ArrowBack, contentDescription = "回去")
                         }
                     }
                 },
                 actions = {
-                    if (!inLesson && !inSettings) {
+                    if (!inLesson && !inSettings && !inPlacement) {
                         IconButton(onClick = onReload, enabled = !state.loading) {
                             Icon(Icons.Filled.Refresh, contentDescription = "刷新")
                         }
@@ -405,7 +478,7 @@ private fun AppScreen(
             )
         },
         bottomBar = {
-            if (!inLesson && !inSettings) {
+            if (!inLesson && !inSettings && !inPlacement) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
                     tonalElevation = 0.dp,
@@ -430,11 +503,17 @@ private fun AppScreen(
         },
     ) { padding ->
         when {
+            inPlacement -> PlacementScreen(
+                apiBaseUrl = state.apiBaseUrl,
+                onFinished = onPlacementFinished,
+                modifier = Modifier.padding(padding),
+            )
             inSettings -> SettingsScreen(
                 state = state,
                 onSaveApiBaseUrl = onSaveApiBaseUrl,
                 onSaveAiModel = onSaveAiModel,
                 onCheckAi = onCheckAi,
+                onStartPlacement = onStartPlacement,
                 modifier = Modifier.padding(padding),
             )
             inLesson -> LessonScreen(
@@ -496,8 +575,14 @@ private fun TodayScreen(
     modifier: Modifier = Modifier,
 ) {
     val now = System.currentTimeMillis()
-    val plan = remember(state.topics, state.mastered, state.memories) {
-        learningPlan(state.topics, state.mastered, state.memories, now)
+    val plan = remember(state.topics, state.mastered, state.memories, state.placement) {
+        learningPlan(
+            state.topics,
+            state.mastered,
+            state.memories,
+            now,
+            preferredStarterId = state.placement?.starterTopicId,
+        )
     }
 
     Column(
@@ -512,6 +597,8 @@ private fun TodayScreen(
             total = state.topics.size,
             dueCount = plan.due.size,
             offline = state.dataSource == "离线",
+            placementLabel = state.placement?.levelLabel,
+            placementSummary = state.placement?.summary,
         )
 
         if (plan.due.isNotEmpty()) {
@@ -576,6 +663,8 @@ private fun GreetingCard(
     total: Int,
     dueCount: Int,
     offline: Boolean,
+    placementLabel: String? = null,
+    placementSummary: String? = null,
 ) {
     SoftCard {
         Text(
@@ -587,6 +676,9 @@ private fun GreetingCard(
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
         )
+        if (placementLabel != null) {
+            Body("摸底大概在：$placementLabel")
+        }
         Body(
             when {
                 dueCount > 0 -> "有 $dueCount 个该温习了，新的先放一放。"
@@ -594,6 +686,14 @@ private fun GreetingCard(
                 else -> "你已经弄懂 $mastered 个了，一共 $total 个。"
             },
         )
+        if (!placementSummary.isNullOrBlank()) {
+            Text(
+                placementSummary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+            )
+        }
         if (offline) {
             Text(
                 "没联网也没关系，照样能学",
@@ -1273,6 +1373,7 @@ private fun SettingsScreen(
     onSaveApiBaseUrl: (String) -> Unit,
     onSaveAiModel: (String) -> Unit,
     onCheckAi: (String, String) -> Unit,
+    onStartPlacement: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var apiBaseUrl by rememberSaveable(state.apiBaseUrl) { mutableStateOf(state.apiBaseUrl) }
@@ -1315,9 +1416,335 @@ private fun SettingsScreen(
             }
             if (state.aiStatus.isNotBlank()) Body(state.aiStatus)
             Body("现在是${state.dataSource}内容 · 你已经弄懂 ${state.mastered.size} 个")
+            state.placement?.let { Body("摸底：${it.levelLabel}") }
             state.syncWarning?.let { Body(it) }
+            Button(onClick = onStartPlacement, shape = CardR) { Text("重新摸底水平") }
         }
     }
+}
+
+// endregion
+
+
+// region Placement — first-run level check
+
+@Composable
+private fun PlacementScreen(
+    apiBaseUrl: String,
+    onFinished: (PlacementResult) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val items = remember { offlineDiagnosticItems() }
+    var index by rememberSaveable { mutableIntStateOf(0) }
+    var answers by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var submitting by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val item = items.getOrNull(index)
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(ScreenPad),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        SoftCard {
+            Text("先摸个底", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Body("不是考试。就想知道你卡在哪些词、哪些关系上。答完再开始讲。")
+            Text(
+                "${index + 1} / ${items.size}",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 13.sp,
+            )
+        }
+        if (item != null) {
+            SoftCard {
+                BigLine(item.prompt)
+                item.choices.forEachIndexed { choiceIndex, choice ->
+                    val selected = answers[item.id] == choiceIndex
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                answers = answers + (item.id to choiceIndex)
+                            },
+                        shape = CardR,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        },
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    ) {
+                        Text(
+                            choice,
+                            modifier = Modifier.padding(14.dp),
+                            fontSize = 15.sp,
+                            lineHeight = 22.sp,
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                TextButton(
+                    onClick = { index = (index - 1).coerceAtLeast(0) },
+                    enabled = index > 0,
+                ) { Text("上一题") }
+                if (index < items.lastIndex) {
+                    Button(
+                        onClick = { index += 1 },
+                        enabled = answers.containsKey(item.id),
+                        shape = CardR,
+                    ) { Text("下一题") }
+                } else {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                submitting = true
+                                error = null
+                                try {
+                                    val result = submitDiagnostic(
+                                        apiBaseUrl,
+                                        answers,
+                                        items,
+                                    )
+                                    onFinished(result)
+                                } catch (e: Exception) {
+                                    error = e.message ?: "提交失败"
+                                } finally {
+                                    submitting = false
+                                }
+                            }
+                        },
+                        enabled = answers.size >= items.size && !submitting,
+                        shape = CardR,
+                    ) {
+                        if (submitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text("看结果")
+                    }
+                }
+            }
+        }
+        error?.let { Body(it) }
+    }
+}
+
+private fun offlineDiagnosticItems(): List<DiagnosticItem> = listOf(
+    DiagnosticItem(
+        id = "d_equality",
+        prompt = "「等号 =」在说什么？",
+        choices = listOf(
+            "左边算完了，右边是答案",
+            "左右两边表示同样多，像天平平衡",
+            "一定要把数加起来",
+            "只是写在竖式中间的符号",
+        ),
+        topicId = "equality",
+        correctIndex = 1,
+    ),
+    DiagnosticItem(
+        id = "d_fraction",
+        prompt = "把一个饼平均分成 4 块，拿走 1 块。这 1 块可以怎么说？",
+        choices = listOf(
+            "就是 1，因为拿走了一块",
+            "是 1/4：把整体当成 1，这一块是其中一份",
+            "是 4/1，因为一共 4 块",
+            "分数只在做题时用，生活里不用",
+        ),
+        topicId = "fraction",
+        correctIndex = 1,
+    ),
+    DiagnosticItem(
+        id = "d_quantity",
+        prompt = "「小明比小红多 3 个苹果」这句话，核心在说什么？",
+        choices = listOf(
+            "只要会加减就能算，不用想关系",
+            "两个量在比多少，差是 3",
+            "一定要用乘法",
+            "这是几何问题",
+        ),
+        topicId = "quantity_relationship",
+        correctIndex = 1,
+    ),
+    DiagnosticItem(
+        id = "d_equation",
+        prompt = "方程里的 x 是什么？",
+        choices = listOf(
+            "一个必须背下来的神秘字母",
+            "暂时还不知道的量，用符号占个位置",
+            "永远等于 0",
+            "只能表示长度",
+        ),
+        topicId = "linear_equation_one_variable",
+        correctIndex = 1,
+    ),
+    DiagnosticItem(
+        id = "d_transposition",
+        prompt = "解方程时「移项要变号」，本质在干什么？",
+        choices = listOf(
+            "老师规定的口诀，背就行",
+            "两边做同样的事，保持相等，只是写法变了",
+            "把数字随便挪位置",
+            "只有减法才能移项",
+        ),
+        topicId = "transposition",
+        correctIndex = 1,
+    ),
+    DiagnosticItem(
+        id = "d_function",
+        prompt = "「函数」这个词，最先该抓住哪一层意思？",
+        choices = listOf(
+            "一个很难的高中公式名",
+            "一个量变了，另一个量按规则跟着变，且一个输入只对一个输出",
+            "只要有 x 和 y 就是函数",
+            "必须先会画很复杂的图像",
+        ),
+        topicId = "function_intro",
+        correctIndex = 1,
+    ),
+)
+
+private fun scoreDiagnosticLocal(
+    answers: Map<String, Int>,
+    items: List<DiagnosticItem>,
+): PlacementResult {
+    val known = mutableListOf<String>()
+    val weak = mutableListOf<String>()
+    var correct = 0
+    var highest = 0
+    val ranks = mapOf(
+        "equality" to 1,
+        "fraction" to 2,
+        "quantity_relationship" to 2,
+        "linear_equation_one_variable" to 3,
+        "transposition" to 3,
+        "function_intro" to 4,
+    )
+    items.forEach { item ->
+        val choice = answers[item.id]
+        if (choice == item.correctIndex) {
+            correct += 1
+            if (item.topicId !in known) known += item.topicId
+            highest = maxOf(highest, ranks[item.topicId] ?: 1)
+        } else if (item.topicId !in weak) {
+            weak += item.topicId
+        }
+    }
+    val levelRank = when {
+        correct == 0 || highest <= 1 || correct <= 1 -> 1
+        highest == 2 || correct <= 3 -> 2
+        highest >= 4 && correct >= 5 -> 4
+        highest >= 3 -> 3
+        else -> 2
+    }
+    val levelLabel = when (levelRank) {
+        1 -> "小学起步"
+        2 -> "小学中段"
+        3 -> "初中入门"
+        else -> "初中函数入门"
+    }
+    val ladder = listOf(
+        "equality",
+        "fraction",
+        "quantity_relationship",
+        "linear_equation_one_variable",
+        "transposition",
+        "function_intro",
+    )
+    val starter = ladder.firstOrNull { it in weak }
+        ?: ladder.firstOrNull { it !in known }
+        ?: "function_intro"
+    val knownText = known.joinToString("、").ifBlank { "还没确认会的" }
+    val weakText = weak.joinToString("、").ifBlank { "暂时没扫出大洞" }
+    val summary =
+        "摸底结果：大约在「$levelLabel」。看起来比较稳的有：$knownText。" +
+            "更该先补的是：$weakText。建议下一课从「$starter」相关内容开始；" +
+            "讲的时候仍会先拆词，不默认你会课本术语。"
+    return PlacementResult(
+        levelLabel = levelLabel,
+        levelRank = levelRank,
+        starterTopicId = starter,
+        knownTopicIds = known,
+        weakTopicIds = weak,
+        summary = summary,
+        correctCount = correct,
+        totalCount = items.size,
+    )
+}
+
+private suspend fun submitDiagnostic(
+    baseUrl: String,
+    answers: Map<String, Int>,
+    items: List<DiagnosticItem>,
+): PlacementResult = withContext(Dispatchers.IO) {
+    try {
+        val array = JSONArray()
+        answers.forEach { (id, choice) ->
+            array.put(JSONObject().put("item_id", id).put("choice_index", choice))
+        }
+        val body = JSONObject().put("answers", array)
+        val data = JSONObject(post(baseUrl, "/diagnostic/submit", body.toString()))
+        PlacementResult(
+            levelLabel = data.optString("level_label"),
+            levelRank = data.optInt("level_rank"),
+            starterTopicId = data.optString("starter_topic_id"),
+            knownTopicIds = data.optJSONArray("known_topic_ids").toStringList(),
+            weakTopicIds = data.optJSONArray("weak_topic_ids").toStringList(),
+            summary = data.optString("summary"),
+            correctCount = data.optInt("correct_count"),
+            totalCount = data.optInt("total_count"),
+        )
+    } catch (_: Exception) {
+        scoreDiagnosticLocal(answers, items)
+    }
+}
+
+private fun loadPlacement(context: Context): PlacementResult? {
+    val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getString(PLACEMENT_PREF, null)
+        ?: return null
+    return try {
+        val data = JSONObject(raw)
+        PlacementResult(
+            levelLabel = data.optString("level_label"),
+            levelRank = data.optInt("level_rank"),
+            starterTopicId = data.optString("starter_topic_id"),
+            knownTopicIds = data.optJSONArray("known_topic_ids").toStringList(),
+            weakTopicIds = data.optJSONArray("weak_topic_ids").toStringList(),
+            summary = data.optString("summary"),
+            correctCount = data.optInt("correct_count"),
+            totalCount = data.optInt("total_count"),
+        )
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun savePlacement(context: Context, value: PlacementResult) {
+    val data = JSONObject()
+        .put("level_label", value.levelLabel)
+        .put("level_rank", value.levelRank)
+        .put("starter_topic_id", value.starterTopicId)
+        .put("known_topic_ids", JSONArray(value.knownTopicIds))
+        .put("weak_topic_ids", JSONArray(value.weakTopicIds))
+        .put("summary", value.summary)
+        .put("correct_count", value.correctCount)
+        .put("total_count", value.totalCount)
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putString(PLACEMENT_PREF, data.toString())
+        .apply()
 }
 
 // endregion
@@ -1370,6 +1797,7 @@ private fun learningPlan(
     mastered: Set<String>,
     memories: Map<String, TopicMemory>,
     now: Long,
+    preferredStarterId: String? = null,
 ): LearningPlan {
     val ordered = topics.understandingOrdered()
     val known = topics.map { it.id }.toSet()
@@ -1377,7 +1805,8 @@ private fun learningPlan(
     val ready = open.filter { topic ->
         topic.prerequisites.filter { it in known }.all { it in mastered }
     }
-    val next = ready.firstOrNull() ?: open.firstOrNull()
+    val preferred = preferredStarterId?.let { id -> open.firstOrNull { it.id == id } }
+    val next = preferred ?: ready.firstOrNull() ?: open.firstOrNull()
     val masteredTopics = ordered.filter { it.id in mastered }
     val due = masteredTopics.filter { memories[it.id]?.isDue(now) == true }
     val later = masteredTopics.filter { it !in due }
@@ -1403,10 +1832,19 @@ private fun offlineTeacherAnswer(
     question: String,
     topics: List<Topic>,
     mastered: Set<String>,
+    placement: PlacementResult? = null,
 ): String {
     val weak = topic.prerequisites.filter { it !in mastered }.names(topics)
     return buildString {
         appendLine("你问的是：$question")
+        if (placement != null) {
+            appendLine()
+            appendLine("摸底水平：${placement.levelLabel}")
+            appendLine(placement.summary)
+        } else {
+            appendLine()
+            appendLine("还没摸底：按你还不熟术语来讲。")
+        }
         appendLine()
         appendLine("【先弄懂这些词】")
         if (topic.terms.isEmpty()) {
@@ -1621,6 +2059,8 @@ private suspend fun fetchTeacherAnswer(
     model: String,
     mastered: Set<String>,
     memories: List<TopicMemory>,
+    placementLevel: String? = null,
+    placementSummary: String? = null,
 ): String = withContext(Dispatchers.IO) {
     val body = JSONObject()
         .put("age", 12)
@@ -1628,6 +2068,8 @@ private suspend fun fetchTeacherAnswer(
         .put("model", model.trim())
         .put("mastered", JSONArray(mastered.sorted()))
         .put("memories", memories.sortedBy { it.topicId }.toRequestJsonArray())
+        .put("placement_level", placementLevel ?: JSONObject.NULL)
+        .put("placement_summary", placementSummary ?: JSONObject.NULL)
     JSONObject(post(baseUrl, "/topics/$topicId/teacher-answer", body.toString()))
         .optString("answer")
 }

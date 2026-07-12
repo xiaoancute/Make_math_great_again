@@ -145,6 +145,8 @@ class TeacherAnswerRequest(BaseModel):
     model: str | None = None
     mastered: list[str] = Field(default_factory=list)
     memories: list[TopicMemoryInput] = Field(default_factory=list)
+    placement_level: str | None = None
+    placement_summary: str | None = None
 
 
 class AIStatusRequest(BaseModel):
@@ -162,3 +164,62 @@ class AIStatusResponse(BaseModel):
     model: str
     model_source: str
     ready: bool
+
+
+class DiagnosticItem(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    prompt: str
+    choices: list[str]
+    correct_index: int = Field(ge=0)
+    topic_id: str
+    level_rank: int = Field(ge=1, le=5)
+    probes: str = ""
+
+
+class DiagnosticItemPublic(BaseModel):
+    """Client-facing item: never includes the answer key."""
+
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    prompt: str
+    choices: list[str]
+    topic_id: str
+    level_rank: int = Field(ge=1, le=5)
+    probes: str = ""
+
+
+class DiagnosticSession(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    title: str
+    intro: str
+    items: list[DiagnosticItemPublic] = Field(default_factory=list)
+
+
+class DiagnosticAnswer(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    item_id: str
+    choice_index: int = Field(ge=0)
+
+
+class DiagnosticSubmitRequest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    answers: list[DiagnosticAnswer] = Field(default_factory=list)
+
+
+class DiagnosticResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    level_label: str
+    level_rank: int = Field(ge=0, le=5)
+    starter_topic_id: str
+    known_topic_ids: list[str] = Field(default_factory=list)
+    weak_topic_ids: list[str] = Field(default_factory=list)
+    summary: str
+    correct_count: int = 0
+    total_count: int = 0

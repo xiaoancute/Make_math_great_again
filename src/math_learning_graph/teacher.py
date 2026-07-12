@@ -103,6 +103,20 @@ def _memory_record_lines(
     return "；".join(lines)
 
 
+def _placement_text(
+    placement_level: str | None,
+    placement_summary: str | None,
+) -> str:
+    if not placement_level and not placement_summary:
+        return (
+            "学生水平：尚未摸底。"
+            "默认按零基础术语处理：任何数学词第一次出现都要用人话解释。"
+        )
+    level = placement_level or "已摸底"
+    summary = placement_summary or ""
+    return f"学生摸底水平：{level}。{summary}"
+
+
 def build_teacher_prompt(
     point: KnowledgePoint,
     student_age: int,
@@ -110,6 +124,8 @@ def build_teacher_prompt(
     learning_profile: LearningProfile | None = None,
     topic_names: dict[str, str] | None = None,
     memory_records: list[TopicMemoryInput] | None = None,
+    placement_level: str | None = None,
+    placement_summary: str | None = None,
 ) -> str:
     route = " -> ".join(point.understanding_route)
     examples = "；".join(point.life_examples)
@@ -121,6 +137,7 @@ def build_teacher_prompt(
     reflection_questions = "；".join(point.reflection_questions)
     terms = "；".join(term_lines(point))
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
+    placement = _placement_text(placement_level, placement_summary)
 
     return f"""你是一名面向{student_age}岁学生的数学老师。
 
@@ -128,6 +145,7 @@ def build_teacher_prompt(
 
 讲解主题：{point.name}
 学生问题：{question}
+{placement}
 {learning_memory}
 
 输出硬顺序（必须按这个写，不能跳）：
@@ -176,6 +194,8 @@ def build_teacher_answer(
     learning_profile: LearningProfile | None = None,
     topic_names: dict[str, str] | None = None,
     memory_records: list[TopicMemoryInput] | None = None,
+    placement_level: str | None = None,
+    placement_summary: str | None = None,
 ) -> str:
     """Deterministic local teacher: terms first, formal definition last among core blocks."""
     _ = student_age  # API symmetry with build_teacher_prompt
@@ -198,6 +218,7 @@ def build_teacher_answer(
         "我能举一个自己的例子吗？",
     ]
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
+    placement = _placement_text(placement_level, placement_summary)
     formal = point.formal_definition or point.human_explanation
     what = point.human_explanation or f"这节在讲和「{point.name}」有关的一种数量或图形关系。"
     why = point.why_needed or "它是为了处理一类具体麻烦才出现的，不是凭空背的标题。"
@@ -205,6 +226,7 @@ def build_teacher_answer(
     memory_block = f"\n{learning_memory}\n" if learning_memory else "\n"
 
     return f"""你问的是：{question}
+{placement}
 {memory_block}{SECTION_TERMS}
 {terms_block(point)}
 

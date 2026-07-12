@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from math_learning_graph.diagnostic import public_diagnostic_session, score_diagnostic
 from math_learning_graph.graph import KnowledgeGraph
 from math_learning_graph.models import (
+    DiagnosticAnswer,
+    DiagnosticResult,
+    DiagnosticSession,
     DomainOverview,
     KnowledgePoint,
     LearningProfile,
@@ -57,12 +61,20 @@ class MathLearningService:
     def learning_profile(self, topic_id: str, mastered_topic_ids: set[str]) -> LearningProfile:
         return self._graph.learning_profile(topic_id, mastered_topic_ids)
 
+    def diagnostic_session(self) -> DiagnosticSession:
+        return public_diagnostic_session()
+
+    def score_diagnostic(self, answers: list[DiagnosticAnswer]) -> DiagnosticResult:
+        return score_diagnostic(answers)
+
     def teacher_prompt(
         self,
         topic_id: str,
         student_age: int,
         question: str,
         mastered_topic_ids: set[str] | None = None,
+        placement_level: str | None = None,
+        placement_summary: str | None = None,
     ) -> TeacherPromptResponse:
         point = self.get_topic(topic_id)
         mastered_topic_ids = mastered_topic_ids or set()
@@ -75,6 +87,8 @@ class MathLearningService:
                 question=question,
                 learning_profile=profile,
                 topic_names=self._topic_names(),
+                placement_level=placement_level,
+                placement_summary=placement_summary,
             ),
         )
 
@@ -86,6 +100,8 @@ class MathLearningService:
         mastered_topic_ids: set[str] | None = None,
         memory_records: list[TopicMemoryInput] | None = None,
         model: str | None = None,
+        placement_level: str | None = None,
+        placement_summary: str | None = None,
     ) -> TeacherAnswerResponse:
         point = self.get_topic(topic_id)
         mastered_topic_ids = mastered_topic_ids or set()
@@ -97,6 +113,8 @@ class MathLearningService:
             learning_profile=profile,
             topic_names=self._topic_names(),
             memory_records=memory_records or [],
+            placement_level=placement_level,
+            placement_summary=placement_summary,
         )
         request_teacher = openai_teacher_from_env(model)
         ai_teacher = request_teacher or self._ai_teacher
@@ -120,6 +138,8 @@ class MathLearningService:
                 learning_profile=profile,
                 topic_names=self._topic_names(),
                 memory_records=memory_records or [],
+                placement_level=placement_level,
+                placement_summary=placement_summary,
             ),
             learning_profile=profile,
         )

@@ -5,6 +5,9 @@ from fastapi import FastAPI, HTTPException, Query
 from math_learning_graph.models import (
     AIStatusRequest,
     AIStatusResponse,
+    DiagnosticResult,
+    DiagnosticSession,
+    DiagnosticSubmitRequest,
     DomainOverview,
     KnowledgePoint,
     LearningProfile,
@@ -32,6 +35,14 @@ def create_app() -> FastAPI:
     @app.post("/ai/status", response_model=AIStatusResponse)
     def ai_status(request: AIStatusRequest) -> AIStatusResponse:
         return ai_status_from_env(request.model)
+
+    @app.get("/diagnostic", response_model=DiagnosticSession)
+    def get_diagnostic() -> DiagnosticSession:
+        return service.diagnostic_session()
+
+    @app.post("/diagnostic/submit", response_model=DiagnosticResult)
+    def submit_diagnostic(request: DiagnosticSubmitRequest) -> DiagnosticResult:
+        return service.score_diagnostic(request.answers)
 
     @app.get("/domains", response_model=list[DomainOverview])
     def list_domains() -> list[DomainOverview]:
@@ -99,6 +110,8 @@ def create_app() -> FastAPI:
                 mastered_topic_ids=set(request.mastered),
                 memory_records=request.memories,
                 model=request.model,
+                placement_level=request.placement_level,
+                placement_summary=request.placement_summary,
             )
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
