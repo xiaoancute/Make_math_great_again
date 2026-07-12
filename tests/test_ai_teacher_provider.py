@@ -89,7 +89,12 @@ def test_openai_teacher_client_uses_responses_api_and_output_text():
     assert calls == [
         {
             "model": "test-model",
-            "instructions": "你是一名耐心、严格、循序渐进的中文数学老师。",
+            "instructions": (
+                "你是一名耐心的中文数学老师。"
+                "永远不要假设学生已经知道数学术语的意思；"
+                "必须先用人话拆词，再讲到底在说什么关系，最后才给课本说法；"
+                "不要用一个未解释的新术语解释另一个新术语。"
+            ),
             "input": "请解释函数",
         }
     ]
