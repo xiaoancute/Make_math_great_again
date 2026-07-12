@@ -1187,7 +1187,7 @@ private fun StuckPanel(
         if (weak != "没有") {
             Body("我猜你可能还缺：$weak")
         }
-        FlowRowQuickAsks(topic) { q ->
+        FlowRowQuickasks(topic) { q ->
             question = q
             scope.launch {
                 asking = true

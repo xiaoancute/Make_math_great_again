@@ -64,7 +64,8 @@ def test_service_falls_back_to_local_teacher_when_ai_provider_fails():
         question="函数为什么要存在？",
     )
 
-    assert "可以先这样理解" in response.answer
+    assert "【先弄懂这些词】" in response.answer
+    assert response.answer.index("【先弄懂这些词】") < response.answer.index("【课本会怎么说】")
     assert "函数" in response.answer
 
 

@@ -145,7 +145,8 @@ def test_teacher_answer_endpoint_returns_student_facing_answer():
     assert response.status_code == 200
     data = response.json()
     assert data["topic_id"] == "function_intro"
-    assert "可以先这样理解" in data["answer"]
+    assert "【先弄懂这些词】" in data["answer"]
+    assert data["answer"].index("【先弄懂这些词】") < data["answer"].index("【课本会怎么说】")
     assert "输入" in data["answer"]
 
 
