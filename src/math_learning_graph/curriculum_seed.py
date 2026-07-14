@@ -1383,6 +1383,49 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             examples=["3个苹果加2个苹果是5个苹果，3x+2x=5x"],
             route=["项", "字母部分相同", "系数相加", "字母部分不变"],
             visuals=["物品分类", "颜色标注式子"],
+            conceptual_layers=[
+                "「项」是式子里被加减号隔开的块：3x²+5x−2 有三项，负号跟着自己的项走。",
+                "同类项 = 字母部分完全相同（字母和指数都一样）："
+                "3x² 和 5x² 同类；3x² 和 3x 不同类——x² 和 x 是两种东西。",
+                "合并的道理是分配律反着用：3x+5x=(3+5)x。"
+                "系数相加、字母部分照抄，数的是「几个 x」。",
+            ],
+            worked_examples=[
+                WorkedExample(
+                    title="整理式子像整理书包",
+                    problem="化简 4x+3y−x+2y。",
+                    steps=[
+                        "先认项：4x、3y、−x、2y（负号属于 −x 这一项）。",
+                        "分类：x 家族有 4x 和 −x；y 家族有 3y 和 2y。",
+                        "各自合并：4x−x=3x；3y+2y=5y。",
+                        "结果是 3x+5y。x 和 y 不同类，到此为止——不能再并成 8xy。",
+                    ],
+                    answer_check="代 x=2、y=1 检验：原式=8+3−2+2=11，3x+5y=11 对上；"
+                    "而 8xy=16——乱并立刻露馅。",
+                ),
+            ],
+            practice_ladder=[
+                PracticeTask(
+                    level="看懂",
+                    prompt="圈出 5a²+3a−2a²+a 里的同类项，说说凭什么算同类。",
+                    goal="同类认得准。",
+                ),
+                PracticeTask(
+                    level="会做",
+                    prompt="化简 7m−3n+2m+n。",
+                    goal="系数相加，字母不动。",
+                ),
+                PracticeTask(
+                    level="迁移",
+                    prompt="x²+x 为什么不能合并成 x³？代 x=2 验证你的说法。",
+                    goal="用代入法给自己纠错。",
+                ),
+            ],
+            reflection_questions=[
+                "判断同类项，看系数还是看字母部分？",
+                "合并同类项和分配律是什么关系？",
+                "怀疑自己并错了，最快的检查办法是什么？",
+            ],
         ),
         _point(
             topic_id="geometric_figures_intro",
@@ -1691,6 +1734,49 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             examples=["调查睡眠时间", "统计出行方式"],
             route=["提出问题", "收集数据", "整理分类", "画图", "解释结论"],
             visuals=["频数表", "条形图", "扇形图"],
+            conceptual_layers=[
+                "统计的第一步不是算，是问清楚：想知道什么？问全体（普查）还是问一部分（抽样）？",
+                "抽样的命门是「代表性」：只在篮球队里量身高，推不出全校平均——"
+                "样本偏了，后面算得再好也白算。",
+                "频数表是数据的中转站：把原始记录按类计数，再选图表达。"
+                "数字 → 表 → 图，一步步变成能回答问题的证据。",
+            ],
+            worked_examples=[
+                WorkedExample(
+                    title="查全校近视率，必须每人都查吗",
+                    problem="想知道全校 2000 人的近视率，怎么做省力又靠谱？",
+                    steps=[
+                        "普查最准但最贵：2000 人逐个查视力。",
+                        "抽样：抽 100 人来查，用样本的近视率去估计全体。",
+                        "关键在怎么抽：只抽六年级会偏高，只抽一年级会偏低；"
+                        "各年级按比例随机抽，样本才像全校的缩影。",
+                        "若抽出的 100 人里 38 人近视，就估计全校约 38%。",
+                    ],
+                    answer_check="说说「在网吧门口调查中学生平均上网时长」错在哪里。",
+                ),
+            ],
+            practice_ladder=[
+                PracticeTask(
+                    level="看懂",
+                    prompt="「查全班身高」和「查全国中学生身高」，哪个适合普查、哪个必须抽样？",
+                    goal="两种收集方式选得对。",
+                ),
+                PracticeTask(
+                    level="会做",
+                    prompt="把全班同学的鞋码记成频数表，再选一种合适的图画出来。",
+                    goal="走完数据到图的全流程。",
+                ),
+                PracticeTask(
+                    level="迁移",
+                    prompt="电视投票说「90% 观众支持」，可信吗？想想是谁在投票。",
+                    goal="识别自选样本的偏差。",
+                ),
+            ],
+            reflection_questions=[
+                "什么时候必须抽样，没法普查？",
+                "样本越大越准吗？偏掉的样本再大有用吗？",
+                "频数表丢掉了什么信息，留下了什么？",
+            ],
         ),
         _point(
             topic_id="triangle_basic",
@@ -1766,6 +1852,50 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             examples=["证明两段长度相等", "判断两个零件是否一样"],
             route=["重合", "对应边角", "需要哪些条件", "判定", "推出结论"],
             visuals=["透明纸重叠", "边角标记图"],
+            conceptual_layers=[
+                "全等就是「完全重合」：形状大小都一样，平移、旋转、翻个面之后能严丝合缝盖住对方。",
+                "重合时互相盖住的边和角叫「对应」：△ABC≌△DEF 的字母顺序就是配对表，"
+                "A 对 D、B 对 E、C 对 F。",
+                "不用把六个量全查一遍：三条边一定，三角形就定死了（稳定性）——"
+                "这就是判定条件 SSS 的底气。",
+            ],
+            worked_examples=[
+                WorkedExample(
+                    title="碎玻璃带哪块去配",
+                    problem="三角形玻璃摔成三块：一块只带一个完整角，一块只带一条完整边，"
+                    "一块带着两个角和它们的夹边。带哪块能配出原样？",
+                    steps=[
+                        "配玻璃就是配一个全等三角形：大小形状都不许差。",
+                        "只有一个角：同角的三角形千千万，定不下来。",
+                        "只有一条边：同边的三角形也无穷多。",
+                        "两角加夹边：两个角定住方向，夹边定住大小，"
+                        "只能画出唯一一个三角形——这就是 ASA 判定。",
+                    ],
+                    answer_check="自己试：给定两角和夹边，看能不能画出第二个不重合的三角形。",
+                ),
+            ],
+            practice_ladder=[
+                PracticeTask(
+                    level="看懂",
+                    prompt="剪两个全等三角形，翻转叠合，指出三对对应边、三对对应角。",
+                    goal="对应关系动手认。",
+                ),
+                PracticeTask(
+                    level="会做",
+                    prompt="已知 △ABC≌△DEF，AB=5，∠A=40°，直接说出 DE 和 ∠D。",
+                    goal="按字母顺序读对应。",
+                ),
+                PracticeTask(
+                    level="迁移",
+                    prompt="裁缝量几个尺寸就能做出合身衣服，这和全等判定像在哪里？",
+                    goal="判定=用最少信息锁定全形。",
+                ),
+            ],
+            reflection_questions=[
+                "全等和「形状一样但大小可以不同」（相似）差在哪？",
+                "为什么三条边能定死三角形，四条边定不死四边形？",
+                "△ABC≌△DEF 的字母顺序在传递什么信息？",
+            ],
         ),
         _point(
             topic_id="axis_symmetry",
@@ -1806,6 +1936,48 @@ def load_curriculum_knowledge_points() -> list[KnowledgePoint]:
             examples=["长方形面积展开", "平方差公式"],
             route=["单项式乘法", "分配律", "多项式乘法", "公式", "合并"],
             visuals=["面积模型"],
+            conceptual_layers=[
+                "整式乘法没有新定律，全是分配律连着用：(a+b)(c+d) 就是让每一项和每一项都握一次手。",
+                "面积模型最直观：长 (a+b)、宽 (c+d) 的大长方形切成四小块——"
+                "ac、ad、bc、bd，一块不多一块不少。",
+                "乘法公式如 (a+b)²=a²+2ab+b² 不是新知识，"
+                "是「握手」的结果太常用，才起个名字方便复用。",
+            ],
+            worked_examples=[
+                WorkedExample(
+                    title="(x+2)(x+3) 的四次握手",
+                    problem="展开 (x+2)(x+3)。",
+                    steps=[
+                        "画长 (x+3)、宽 (x+2) 的长方形，切成四块：x·x、x·3、2·x、2·3。",
+                        "四块面积分别是 x²、3x、2x、6。",
+                        "合并同类项：3x+2x=5x。所以 (x+2)(x+3)=x²+5x+6。",
+                        "检验：代 x=1，左边 3×4=12，右边 1+5+6=12，对上了。",
+                    ],
+                    answer_check="代 x=2 再验一次；漏掉任何一次握手，数字立刻对不上。",
+                ),
+            ],
+            practice_ladder=[
+                PracticeTask(
+                    level="看懂",
+                    prompt="画面积图解释 (a+b)(c+d) 为什么恰好展开成四项。",
+                    goal="每次握手在图上有一块。",
+                ),
+                PracticeTask(
+                    level="会做",
+                    prompt="展开 (x+1)(x+4)，每一步说清是谁乘了谁。",
+                    goal="不漏项、不错号。",
+                ),
+                PracticeTask(
+                    level="迁移",
+                    prompt="用面积图说明 (a+b)² 为什么不等于 a²+b²，中间的 2ab 是哪两块？",
+                    goal="公式退回到图。",
+                ),
+            ],
+            reflection_questions=[
+                "整式乘法里用到的定律，哪一条是新的？",
+                "(a+b)² 的 2ab 在面积图上是哪两块？",
+                "展开之后为什么总要合并同类项？",
+            ],
         ),
         _point(
             topic_id="factorization",
