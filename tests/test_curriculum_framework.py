@@ -237,60 +237,15 @@ def test_ai_status_endpoint_accepts_request_model(monkeypatch):
     assert data["ready"] is True
 
 
-def test_load_bearing_and_diagnostic_topics_have_real_content():
-    # Ratchet: these topics are either top载重 prerequisites or diagnostic starters.
-    # They must carry hand-written content, never depth.py template scaffolding.
+def test_no_topic_ships_template_scaffolding():
+    # Final ratchet: every topic in the graph must carry hand-written content.
+    # depth.py defaults exist only as a construction-time safety net; if any
+    # topic still shows their fingerprints, content debt has crept back in.
     from math_learning_graph.depth import scaffolded_fields
 
-    protected = {
-        "number_recognition",
-        "place_value_decimal_system",
-        "integer_addition_subtraction",
-        "multiplication_meaning",
-        "arithmetic_operations",
-        "division_meaning",
-        "quantity_relationship",
-        "decimal",
-        "negative_number_intro",
-        "rational_numbers",
-        "measurement_units",
-        "line_angle_basic",
-        "distributive_property",
-        "power_scientific_notation",
-        "perimeter",
-        "area",
-        "volume",
-        "geometric_figures_intro",
-        "parallel_lines",
-        "mixed_operations",
-        "triangle_basic",
-        "primary_equation",
-        "algebraic_expression",
-        "percent",
-        "coordinate_plane",
-        "real_numbers",
-        "data_collection_chart",
-        "quadratic_radicals",
-        "ratio",
-        "congruent_triangles",
-        "linear_equation_two_variables",
-        "polynomial_multiplication",
-        "like_terms",
-        "data_collection_description",
-        "equality",
-        "fraction",
-        "linear_equation_one_variable",
-        "transposition",
-        "function_intro",
-        "set_concept",
-        "function_properties_high_school",
-        "trigonometric_functions",
-        "derivative_intro",
-    }
-    points = {p.id: p for p in load_knowledge_points()}
     still_templated = {
-        topic_id: scaffolded_fields(points[topic_id])
-        for topic_id in sorted(protected)
-        if scaffolded_fields(points[topic_id])
+        point.id: scaffolded_fields(point)
+        for point in load_knowledge_points()
+        if scaffolded_fields(point)
     }
-    assert not still_templated, f"protected topics using template content: {still_templated}"
+    assert not still_templated, f"topics using template content: {still_templated}"
