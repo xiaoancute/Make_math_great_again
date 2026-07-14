@@ -176,6 +176,11 @@ private data class PracticeTask(
     val goal: String,
 )
 
+private data class ChatTurn(
+    val question: String,
+    val answer: String,
+)
+
 private data class TopicMemory(
     val topicId: String,
     val masteryLevel: Int,
@@ -213,7 +218,7 @@ private data class UiState(
     val topics: List<Topic> = emptyList(),
     val selected: Topic? = null,
     val memories: Map<String, TopicMemory> = emptyMap(),
-    val answer: String = "",
+    val chat: List<ChatTurn> = emptyList(),
     val apiBaseUrl: String = DEFAULT_API_BASE_URL,
     val aiModel: String = "",
     val learnerAge: Int = DEFAULT_LEARNER_AGE,
@@ -302,7 +307,7 @@ private fun MmgaApp() {
             AppScreen(
                 state = state,
                 onReload = { scope.launch { loadTopics() } },
-                onSelect = { state = state.copy(selected = it, answer = "", showSettings = false) },
+                onSelect = { state = state.copy(selected = it, chat = emptyList(), showSettings = false) },
                 onBack = {
                     when {
                         state.showPlacement && state.placement != null ->
@@ -310,7 +315,7 @@ private fun MmgaApp() {
                         state.showSettings ->
                             state = state.copy(showSettings = false)
                         else ->
-                            state = state.copy(selected = null, answer = "")
+                            state = state.copy(selected = null, chat = emptyList())
                     }
                 },
                 onOpenSettings = { state = state.copy(showSettings = true, selected = null) },
@@ -327,32 +332,34 @@ private fun MmgaApp() {
                     state = state.copy(memories = memories)
                 },
                 onAsk = { topic, question ->
-                    state = state.copy(answer = "等等，我想想…")
-                    state = try {
-                        state.copy(
-                            answer = fetchTeacherAnswer(
-                                state.apiBaseUrl,
-                                topic.id,
-                                question,
-                                state.aiModel,
-                                state.learnerAge,
-                                state.mastered,
-                                state.memories.values.toList(),
-                                state.placement?.levelLabel,
-                                state.placement?.summary,
-                            ),
+                    val reply = try {
+                        fetchTeacherAnswer(
+                            state.apiBaseUrl,
+                            topic.id,
+                            question,
+                            state.aiModel,
+                            state.learnerAge,
+                            state.mastered,
+                            state.memories.values.toList(),
+                            state.chat,
+                            state.placement?.levelLabel,
+                            state.placement?.summary,
                         )
                     } catch (_: Exception) {
-                        state.copy(
-                            answer = offlineTeacherAnswer(
+                        if (state.chat.isEmpty()) {
+                            offlineTeacherAnswer(
                                 topic,
                                 question,
                                 state.topics,
                                 state.mastered,
                                 state.placement,
-                            ),
-                        )
+                            )
+                        } else {
+                            "现在联系不上在线老师，接不上刚才的对话。" +
+                                "先照上面的讲解自查一轮，联网后接着问，会从你停下的地方继续。"
+                        }
                     }
+                    state = state.copy(chat = state.chat + ChatTurn(question, reply))
                 },
                 onSaveApiBaseUrl = { url ->
                     val normalized = normalizeBaseUrl(url)
@@ -413,7 +420,7 @@ private fun MmgaApp() {
                         showPlacement = false,
                         memories = memories,
                         selected = starter,
-                        answer = "",
+                        chat = emptyList(),
                     )
                 },
             )
@@ -532,7 +539,7 @@ private fun AppScreen(
                 topics = state.topics,
                 mastered = state.mastered,
                 memories = state.memories,
-                answer = state.answer,
+                chat = state.chat,
                 onMarkUnderstood = onMarkUnderstood,
                 onMarkNeedsWork = onMarkNeedsWork,
                 onAsk = onAsk,
@@ -1051,7 +1058,7 @@ private fun LessonScreen(
     topics: List<Topic>,
     mastered: Set<String>,
     memories: Map<String, TopicMemory>,
-    answer: String,
+    chat: List<ChatTurn>,
     onMarkUnderstood: (Topic) -> Unit,
     onMarkNeedsWork: (Topic) -> Unit,
     onAsk: suspend (Topic, String) -> Unit,
@@ -1172,7 +1179,7 @@ private fun LessonScreen(
                     topic = topic,
                     topics = topics,
                     mastered = mastered,
-                    answer = answer,
+                    chat = chat,
                     onAsk = onAsk,
                 )
                 null -> SoftCard { Body("这节暂时没内容。") }
@@ -1284,7 +1291,7 @@ private fun StuckPanel(
     topic: Topic,
     topics: List<Topic>,
     mastered: Set<String>,
-    answer: String,
+    chat: List<ChatTurn>,
     onAsk: suspend (Topic, String) -> Unit,
 ) {
     var question by rememberSaveable(topic.id) { mutableStateOf("") }
@@ -1294,16 +1301,43 @@ private fun StuckPanel(
 
     SoftCard {
         BigLine("卡在哪了？")
-        Body("说清楚就行：哪个词不懂，还是哪一步算不动。没网也能先给你讲一讲。")
+        Body("说清楚就行：哪个词不懂，还是哪一步算不动。答完还能接着追问，老师记得你们聊到哪了。")
         if (weak != "没有") {
             Body("我猜你可能还缺：$weak")
         }
-        FlowRowQuickasks(topic) { q ->
-            question = q
-            scope.launch {
-                asking = true
-                onAsk(topic, q)
-                asking = false
+        chat.forEach { turn ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = CardR,
+                color = MaterialTheme.colorScheme.primaryContainer,
+            ) {
+                Text(
+                    "你：${turn.question}",
+                    modifier = Modifier.padding(12.dp),
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                )
+            }
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = CardR,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Text(
+                    turn.answer,
+                    modifier = Modifier.padding(14.dp),
+                    fontSize = 15.sp,
+                    lineHeight = 23.sp,
+                )
+            }
+        }
+        if (chat.isEmpty()) {
+            FlowRowQuickasks(topic) { q ->
+                scope.launch {
+                    asking = true
+                    onAsk(topic, q)
+                    asking = false
+                }
             }
         }
         OutlinedTextField(
@@ -1311,7 +1345,7 @@ private fun StuckPanel(
             onValueChange = { question = it },
             modifier = Modifier.fillMaxWidth(),
             minLines = 2,
-            label = { Text("把问题写在这儿") },
+            label = { Text(if (chat.isEmpty()) "把问题写在这儿" else "接着问，或写下你的想法") },
             enabled = !asking,
             shape = CardR,
         )
@@ -1322,6 +1356,7 @@ private fun StuckPanel(
                     scope.launch {
                         asking = true
                         onAsk(topic, q)
+                        question = ""
                         asking = false
                     }
                 }
@@ -1337,21 +1372,7 @@ private fun StuckPanel(
                 )
                 Spacer(Modifier.width(8.dp))
             }
-            Text("问问看")
-        }
-        if (answer.isNotBlank()) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = CardR,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-            ) {
-                Text(
-                    answer,
-                    modifier = Modifier.padding(14.dp),
-                    fontSize = 15.sp,
-                    lineHeight = 23.sp,
-                )
-            }
+            Text(if (chat.isEmpty()) "问问看" else "接着聊")
         }
     }
 }
@@ -2167,19 +2188,28 @@ private suspend fun fetchTeacherAnswer(
     learnerAge: Int,
     mastered: Set<String>,
     memories: List<TopicMemory>,
+    history: List<ChatTurn>,
     placementLevel: String? = null,
     placementSummary: String? = null,
 ): String = withContext(Dispatchers.IO) {
+    val historyArray = JSONArray()
+    history.forEach { turn ->
+        historyArray.put(
+            JSONObject().put("question", turn.question).put("answer", turn.answer),
+        )
+    }
     val body = JSONObject()
         .put("age", learnerAge.coerceIn(6, 99))
         .put("question", question)
         .put("model", model.trim())
         .put("mastered", JSONArray(mastered.sorted()))
         .put("memories", memories.sortedBy { it.topicId }.toRequestJsonArray())
+        .put("history", historyArray)
         .put("placement_level", placementLevel ?: JSONObject.NULL)
         .put("placement_summary", placementSummary ?: JSONObject.NULL)
-    JSONObject(post(baseUrl, "/topics/$topicId/teacher-answer", body.toString()))
-        .optString("answer")
+    val data = JSONObject(post(baseUrl, "/topics/$topicId/teacher-answer", body.toString()))
+    val answer = data.optString("answer")
+    if (data.optString("source") == "local") "【离线讲解】\n$answer" else answer
 }
 
 private suspend fun fetchAiStatus(baseUrl: String, model: String): String =

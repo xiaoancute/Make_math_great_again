@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from math_learning_graph.models import KnowledgePoint, LearningProfile, TopicMemoryInput
+from math_learning_graph.models import (
+    ChatTurn,
+    KnowledgePoint,
+    LearningProfile,
+    TopicMemoryInput,
+)
 
 # Fixed section headers — tests and clients rely on this order.
 SECTION_TERMS = "【先弄懂这些词】"
@@ -127,6 +132,29 @@ def _age_register(age: int) -> str:
     return "对方是成年自学者：语气平等务实，不要孩子气；但同样先把术语拆成人话再给正式说法。"
 
 
+def _history_block(history: list[ChatTurn]) -> str:
+    turns = history[-8:]  # ponytail: cap resent context; sessions run short in practice
+    lines: list[str] = []
+    for turn in turns:
+        lines.append(f"学生：{turn.question}")
+        lines.append(f"老师：{turn.answer}")
+    return "【之前的对话】\n" + "\n".join(lines) + "\n"
+
+
+_OPENING_FORMAT = f"""输出硬顺序（必须按这个写，不能跳）：
+{SECTION_TERMS}
+{SECTION_WHAT}
+{SECTION_WHY}
+{SECTION_EXAMPLE}
+{SECTION_FORMAL}
+{SECTION_CHECK}"""
+
+_FOLLOWUP_FORMAT = """这是一次继续对话，不是新开一课：
+- 顺着学生最新的话直接往下走，不要重复完整讲稿，也不要再套六段格式。
+- 学生答对了就确认，并往深一层带；答错了先判断是卡在词还是卡在步骤，再给一个更小的问题。
+- 新术语第一次出现时，仍然必须先用人话拆词。"""
+
+
 def build_teacher_prompt(
     point: KnowledgePoint,
     student_age: int,
@@ -136,6 +164,7 @@ def build_teacher_prompt(
     memory_records: list[TopicMemoryInput] | None = None,
     placement_level: str | None = None,
     placement_summary: str | None = None,
+    history: list[ChatTurn] | None = None,
 ) -> str:
     route = " -> ".join(point.understanding_route)
     examples = "；".join(point.life_examples)
@@ -148,23 +177,20 @@ def build_teacher_prompt(
     terms = "；".join(term_lines(point))
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
     placement = _placement_text(placement_level, placement_summary)
+    conversation = _history_block(history) if history else ""
+    output_format = _FOLLOWUP_FORMAT if history else _OPENING_FORMAT
 
     return f"""你是一名中文数学老师，对方是{student_age}岁的学习者。{_age_register(student_age)}
 
 产品目标：让学生不在术语上犯困，先听懂「到底在讲什么」，再碰课本说法。
 
 讲解主题：{point.name}
-学生问题：{question}
 {placement}
 {learning_memory}
+{conversation}
+学生问题：{question}
 
-输出硬顺序（必须按这个写，不能跳）：
-{SECTION_TERMS}
-{SECTION_WHAT}
-{SECTION_WHY}
-{SECTION_EXAMPLE}
-{SECTION_FORMAL}
-{SECTION_CHECK}
+{output_format}
 
 讲解规则：
 1. 永远不要假设学生已经知道你用的数学术语是什么意思。
@@ -177,7 +203,7 @@ def build_teacher_prompt(
 8. 如果掌握记录显示前置薄弱，先补前置词与关系，再回到当前问题。
 9. 学生困惑时，先问「你卡在哪个词，还是卡在哪一步？」
 
-材料（讲解时按硬顺序使用，术语必须最先出现）：
+材料（讲解时按需使用，术语必须最先出现）：
 {SECTION_TERMS}
 {terms}
 {SECTION_WHAT}
@@ -280,12 +306,24 @@ def answer_section_order(answer: str) -> list[str]:
 
 
 def answer_respects_term_first(answer: str) -> bool:
-    """North-star gate for a teacher answer: the plain-language terms block must be
-    present and must come before the textbook definition. Looser than a fixed
+    """North-star gate for an OPENING teacher answer: the plain-language terms block
+    must be present and must come before the textbook definition. Looser than a fixed
     six-header template so a genuinely good model answer isn't discarded for an
-    intro line or a reordered example — it only enforces 先词后事."""
+    intro line or a reordered example — it only enforces 先词后事. Follow-up turns
+    in a conversation are exempt (they are dialogue, not lectures)."""
     if SECTION_TERMS not in answer:
         return False
     if SECTION_FORMAL in answer:
         return answer.index(SECTION_TERMS) < answer.index(SECTION_FORMAL)
     return True
+
+
+def build_followup_fallback(question: str) -> str:
+    """When the AI teacher drops mid-conversation, be honest — don't re-dump the lesson."""
+    return (
+        f"你刚才说：{question}\n"
+        "现在联系不上在线 AI 老师，接不上刚才的对话。\n"
+        "别停下：回到上面的讲解，把【先弄懂这些词】再读一遍，"
+        "然后照【自己检查】的问题自己答一轮；"
+        "连上网之后接着问，我们会从你停下的地方继续。"
+    )

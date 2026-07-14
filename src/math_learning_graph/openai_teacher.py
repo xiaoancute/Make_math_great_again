@@ -74,4 +74,6 @@ def _create_openai_client(config: OpenAITeacherConfig) -> Any:
         from openai import OpenAI
     except ImportError as exc:
         raise RuntimeError("openai package is not installed") from exc
-    return OpenAI(api_key=config.api_key)
+    # A student is waiting on this call — fail fast to the local teacher instead of
+    # hanging on the SDK's 10-minute default.
+    return OpenAI(api_key=config.api_key, timeout=60.0)

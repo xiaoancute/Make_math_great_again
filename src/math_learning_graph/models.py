@@ -124,6 +124,7 @@ class TeacherAnswerResponse(BaseModel):
     topic_id: str
     answer: str
     learning_profile: LearningProfile | None = None
+    source: str = "local"
 
 
 class TopicMemoryInput(BaseModel):
@@ -137,6 +138,15 @@ class TopicMemoryInput(BaseModel):
     next_review_at: int | None = None
 
 
+class ChatTurn(BaseModel):
+    """One prior question/answer exchange; the client owns the transcript."""
+
+    model_config = ConfigDict(frozen=True)
+
+    question: str
+    answer: str
+
+
 class TeacherAnswerRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -147,6 +157,7 @@ class TeacherAnswerRequest(BaseModel):
     memories: list[TopicMemoryInput] = Field(default_factory=list)
     placement_level: str | None = None
     placement_summary: str | None = None
+    history: list[ChatTurn] = Field(default_factory=list)
 
 
 class AIStatusRequest(BaseModel):

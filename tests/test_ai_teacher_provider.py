@@ -1,4 +1,4 @@
-from math_learning_graph.models import TopicMemoryInput
+from math_learning_graph.models import ChatTurn, TopicMemoryInput
 from math_learning_graph.openai_teacher import (
     OpenAITeacherClient,
     OpenAITeacherConfig,
@@ -139,6 +139,66 @@ def test_answer_respects_term_first_gate():
     assert not answer_respects_term_first("直接给定义，没有拆词。")
     formal_first = f"{SECTION_FORMAL}\n定义先出。\n{SECTION_TERMS}\n词后补。"
     assert not answer_respects_term_first(formal_first)
+
+
+def test_followup_turn_accepts_free_dialogue_and_carries_history():
+    free_reply = "对，你说的第二种理解是对的。那你试试：把 3 换成 5，等式还平衡吗？"
+    teacher = FakeTeacher(free_reply)
+    service = MathLearningService.create_default(ai_teacher=teacher)
+    history = [
+        ChatTurn(question="等式是啥？", answer="等式就是两边一样多，像天平。你觉得 5+3=8 平衡吗？"),
+    ]
+
+    response = service.teacher_answer(
+        "equality",
+        student_age=12,
+        question="平衡，因为两边都是 8",
+        history=history,
+    )
+
+    assert response.answer == free_reply
+    assert response.source == "ai"
+    prompt = teacher.prompts[0]
+    assert "【之前的对话】" in prompt
+    assert "等式就是两边一样多" in prompt
+    assert "继续对话" in prompt
+    assert "输出硬顺序" not in prompt
+    assert "仍然必须先用人话拆词" in prompt
+
+
+def test_opening_turn_still_requires_term_first_sections():
+    teacher = FakeTeacher("直接聊天，没有任何拆词块。")
+    service = MathLearningService.create_default(ai_teacher=teacher)
+
+    response = service.teacher_answer(
+        "equality",
+        student_age=12,
+        question="等式是啥？",
+    )
+
+    assert response.source == "local"
+    assert SECTION_TERMS in response.answer
+    assert "输出硬顺序" in teacher.prompts[0]
+
+
+def test_followup_fallback_is_honest_not_a_lesson_redump():
+    class FailingTeacher:
+        def generate_answer(self, prompt: str) -> str:
+            raise RuntimeError("provider down")
+
+    service = MathLearningService.create_default(ai_teacher=FailingTeacher())
+    history = [ChatTurn(question="等式是啥？", answer="像天平。")]
+
+    response = service.teacher_answer(
+        "equality",
+        student_age=12,
+        question="那移项呢？",
+        history=history,
+    )
+
+    assert response.source == "local"
+    assert "联系不上" in response.answer
+    assert SECTION_FORMAL not in response.answer
 
 
 def test_openai_teacher_client_uses_responses_api_and_output_text():

@@ -115,6 +115,7 @@ def create_app() -> FastAPI:
                 model=request.model,
                 placement_level=request.placement_level,
                 placement_summary=request.placement_summary,
+                history=request.history,
             )
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -5,6 +5,7 @@ import logging
 from math_learning_graph.diagnostic import public_diagnostic_session, score_diagnostic
 from math_learning_graph.graph import KnowledgeGraph
 from math_learning_graph.models import (
+    ChatTurn,
     DiagnosticAnswer,
     DiagnosticResult,
     DiagnosticSession,
@@ -24,6 +25,7 @@ from math_learning_graph.seed import (
 )
 from math_learning_graph.teacher import (
     answer_respects_term_first,
+    build_followup_fallback,
     build_teacher_answer,
     build_teacher_prompt,
 )
@@ -110,9 +112,11 @@ class MathLearningService:
         model: str | None = None,
         placement_level: str | None = None,
         placement_summary: str | None = None,
+        history: list[ChatTurn] | None = None,
     ) -> TeacherAnswerResponse:
         point = self.get_topic(topic_id)
         mastered_topic_ids = mastered_topic_ids or set()
+        history = history or []
         profile = self.learning_profile(topic_id, mastered_topic_ids)
         prompt = build_teacher_prompt(
             point,
@@ -123,17 +127,20 @@ class MathLearningService:
             memory_records=memory_records or [],
             placement_level=placement_level,
             placement_summary=placement_summary,
+            history=history,
         )
         request_teacher = openai_teacher_from_env(model)
         ai_teacher = request_teacher or self._ai_teacher
         if ai_teacher is not None:
             try:
                 answer = ai_teacher.generate_answer(prompt)
-                if answer and answer_respects_term_first(answer):
+                # Opening turn must be terms-first; follow-ups are dialogue and exempt.
+                if answer and (history or answer_respects_term_first(answer)):
                     return TeacherAnswerResponse(
                         topic_id=topic_id,
                         answer=answer,
                         learning_profile=profile,
+                        source="ai",
                     )
                 _logger.warning(
                     "AI teacher answer for %s rejected (term-first gate); using local teacher",
@@ -141,6 +148,14 @@ class MathLearningService:
                 )
             except Exception:
                 _logger.exception("AI teacher failed for %s; using local teacher", topic_id)
+        if history:
+            # Mid-conversation: an honest handoff beats re-dumping the opening lesson.
+            return TeacherAnswerResponse(
+                topic_id=topic_id,
+                answer=build_followup_fallback(question),
+                learning_profile=profile,
+                source="local",
+            )
         return TeacherAnswerResponse(
             topic_id=topic_id,
             answer=build_teacher_answer(
@@ -154,6 +169,7 @@ class MathLearningService:
                 placement_summary=placement_summary,
             ),
             learning_profile=profile,
+            source="local",
         )
 
     def _topic_names(self) -> dict[str, str]:
