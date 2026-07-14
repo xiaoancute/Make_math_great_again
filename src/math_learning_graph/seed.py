@@ -343,6 +343,45 @@ def _merge_knowledge_points() -> list[KnowledgePoint]:
             exercise_types=["口算", "混合运算", "现实问题列式"],
             school_route=["小学", "数与代数", "四则运算"],
             understanding_route=["数量变化", "合并和分开", "成组", "平均分"],
+            conceptual_layers=[
+                "四种运算就是四种数量动作：加是合起来，减是拿走或比差，乘是相同的组反复加，除是平均分或数组数。",
+                "减法是加法的反向，除法是乘法的反向——四种运算其实是两对。",
+                "看到应用题先问「数量在做什么动作」，动作找对了，运算符号自然就对了。",
+            ],
+            worked_examples=[
+                _worked(
+                    "一道题四种动作",
+                    "文具店：一支笔 3 元。买 4 支付 20 元，找回多少？",
+                    [
+                        "4 支一样的笔是「相同的组」：3×4=12 元，这是乘。",
+                        "付 20 元、商品拿走 12 元，剩下的是差：20-12=8 元，这是减。",
+                        "一道题里动作可以接着动作：先乘再减，顺序由事情本身决定。",
+                    ],
+                    "能把式子 20-3×4 里每一步说回「谁在做什么」。",
+                ),
+            ],
+            practice_ladder=[
+                _task(
+                    "看懂",
+                    "把加、减、乘、除各配一个生活动作，用一句话说出来。",
+                    "四种运算都有画面。",
+                ),
+                _task(
+                    "会做",
+                    "看式子 18÷3+2×4，先说每步对应什么动作，再算。",
+                    "运算和动作互相翻译。",
+                ),
+                _task(
+                    "迁移",
+                    "编一道要用到两种运算的买东西问题，考考别人。",
+                    "能反向出题说明真懂了。",
+                ),
+            ],
+            reflection_questions=[
+                "加和减是什么关系？乘和除呢？",
+                "拿到应用题，第一步该问自己什么？",
+                "为什么说乘法是「长大了的加法」？",
+            ],
         ),
         KnowledgePoint(
             id="distributive_property",
@@ -470,6 +509,45 @@ def _merge_knowledge_points() -> list[KnowledgePoint]:
             exercise_types=["找已知量和未知量", "用表格整理关系"],
             school_route=["小学到初中", "数与代数", "数量关系"],
             understanding_route=["生活变化", "两个量", "影响关系", "表达关系"],
+            conceptual_layers=[
+                "应用题不是文字游戏：每道题背后都是几个量在互相影响，先找到量，再找到影响方式。",
+                "常见的关系就几种：合起来（部分+部分=总量）、比多少（大数-小数=差）、几倍（每份×份数=总量）。",
+                "「小明比小红多 3 个」说的不是小明有几个，是两个量之间差 3——关系本身就是信息。",
+            ],
+            worked_examples=[
+                _worked(
+                    "从一句话里找关系",
+                    "「买 5 支笔比买 3 支笔多花 6 元」，一支笔多少钱？",
+                    [
+                        "先找量：5 支的总价、3 支的总价、一支的单价。",
+                        "找关系：5 支比 3 支多 2 支，多花的 6 元正是这 2 支的价钱。",
+                        "所以一支笔 6÷2=3 元。没列什么公式，只是把「谁比谁多什么」说清楚了。",
+                    ],
+                    "能画一条线段图，把「多 2 支」和「多 6 元」标在同一段上。",
+                ),
+            ],
+            practice_ladder=[
+                _task(
+                    "看懂",
+                    "读一道应用题，先不做，只说出题里有哪几个量、谁影响谁。",
+                    "把读题变成找量找关系。",
+                ),
+                _task(
+                    "会做",
+                    "用线段图表示「甲比乙多 3 个，甲乙一共 11 个」，再求甲乙。",
+                    "关系画出来就好解。",
+                ),
+                _task(
+                    "迁移",
+                    "打车费=起步价+每公里单价×公里数。哪些量在变？哪些不变？",
+                    "为函数的「变量」做准备。",
+                ),
+            ],
+            reflection_questions=[
+                "「比多 3 个」这句话告诉你哪个量的具体数值了吗？",
+                "总价、单价、数量三个量，知道其中两个能求第三个吗？",
+                "为什么说找关系比记题型更可靠？",
+            ],
         ),
         KnowledgePoint(
             id="transposition",
@@ -760,3 +838,42 @@ def _merge_knowledge_points() -> list[KnowledgePoint]:
 
 def load_seed_knowledge_points() -> list[KnowledgePoint]:
     return load_knowledge_points()
+
+
+def content_debt_report() -> list[dict[str, object]]:
+    """Topics still carrying template scaffold text, most load-bearing first.
+
+    Load-bearing = number of descendants in the prerequisite graph: filling an
+    early prerequisite improves every lesson built on top of it.
+    """
+    from math_learning_graph.depth import scaffolded_fields
+    from math_learning_graph.graph import KnowledgeGraph
+
+    points = load_knowledge_points()
+    graph = KnowledgeGraph.from_points(points)
+    rows = []
+    for point in points:
+        fields = scaffolded_fields(point)
+        if not fields:
+            continue
+        rows.append(
+            {
+                "id": point.id,
+                "name": point.name,
+                "band": point.grade_band.value,
+                "descendants": len(graph.future_topics_for(point.id)),
+                "scaffolded": fields,
+            }
+        )
+    rows.sort(key=lambda row: (-int(row["descendants"]), str(row["id"])))
+    return rows
+
+
+if __name__ == "__main__":
+    report = content_debt_report()
+    total = len(load_knowledge_points())
+    print(f"内容欠账：{len(report)}/{total} 个知识点仍在使用模板脚手架（按承重排序）\n")
+    print(f"{'知识点':<34}{'学段':<20}{'下游':<6}待补字段")
+    for row in report:
+        name = f"{row['name']}({row['id']})"
+        print(f"{name:<34}{row['band']:<20}{row['descendants']:<6}{','.join(row['scaffolded'])}")

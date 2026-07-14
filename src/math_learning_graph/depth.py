@@ -70,3 +70,24 @@ def default_reflection_questions(name: str) -> list[str]:
         "我能不能说出每一步为什么成立，而不是只说下一步怎么算？",
         "这个知识以后会连接到哪个更大的问题？",
     ]
+
+
+def scaffolded_fields(point: KnowledgePoint) -> list[str]:
+    """Which teachable fields still carry auto-generated template text.
+
+    Detects the fixed fingerprints the default_* builders leave behind, so the
+    content debt is visible instead of hiding inside 'looks filled' topics.
+    """
+    fields: list[str] = []
+    if point.conceptual_layers and point.conceptual_layers[0].startswith("先用一句人话抓住它："):
+        fields.append("conceptual_layers")
+    if point.worked_examples and point.worked_examples[0].title == "从例子到概念":
+        fields.append("worked_examples")
+    default_practice_prompt = f"用自己的话解释{point.name}在说什么。"
+    if point.practice_ladder and point.practice_ladder[0].prompt == default_practice_prompt:
+        fields.append("practice_ladder")
+    if point.reflection_questions and point.reflection_questions[0] == (
+        f"如果不用{point.name}，这类问题会卡在哪里？"
+    ):
+        fields.append("reflection_questions")
+    return fields

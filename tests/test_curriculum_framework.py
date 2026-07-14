@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from math_learning_graph.api import create_app
+from math_learning_graph.seed import load_knowledge_points
 from math_learning_graph.service import MathLearningService
 
 
@@ -234,3 +235,35 @@ def test_ai_status_endpoint_accepts_request_model(monkeypatch):
     assert data["model"] == "user-model"
     assert data["model_source"] == "request"
     assert data["ready"] is True
+
+
+def test_load_bearing_and_diagnostic_topics_have_real_content():
+    # Ratchet: these topics are either top载重 prerequisites or diagnostic starters.
+    # They must carry hand-written content, never depth.py template scaffolding.
+    from math_learning_graph.depth import scaffolded_fields
+
+    protected = {
+        "number_recognition",
+        "place_value_decimal_system",
+        "integer_addition_subtraction",
+        "multiplication_meaning",
+        "arithmetic_operations",
+        "division_meaning",
+        "quantity_relationship",
+        "equality",
+        "fraction",
+        "linear_equation_one_variable",
+        "transposition",
+        "function_intro",
+        "set_concept",
+        "function_properties_high_school",
+        "trigonometric_functions",
+        "derivative_intro",
+    }
+    points = {p.id: p for p in load_knowledge_points()}
+    still_templated = {
+        topic_id: scaffolded_fields(points[topic_id])
+        for topic_id in sorted(protected)
+        if scaffolded_fields(points[topic_id])
+    }
+    assert not still_templated, f"protected topics using template content: {still_templated}"
