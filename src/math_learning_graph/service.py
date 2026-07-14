@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 
 from math_learning_graph.diagnostic import public_diagnostic_session, score_diagnostic
 from math_learning_graph.graph import KnowledgeGraph
@@ -24,6 +25,7 @@ from math_learning_graph.seed import (
     load_roadmap_items,
 )
 from math_learning_graph.teacher import (
+    SECTION_FORMAL,
     answer_respects_term_first,
     build_followup_fallback,
     build_teacher_answer,
@@ -31,6 +33,10 @@ from math_learning_graph.teacher import (
 )
 
 _logger = logging.getLogger(__name__)
+
+
+class _TermFirstViolation(Exception):
+    """Internal signal: a streamed opening answer broke the terms-before-definition rule."""
 
 
 class MathLearningService:
@@ -174,3 +180,94 @@ class MathLearningService:
 
     def _topic_names(self) -> dict[str, str]:
         return {point.id: point.name for point in self._graph.all_points()}
+
+    def teacher_answer_stream(
+        self,
+        topic_id: str,
+        student_age: int,
+        question: str,
+        mastered_topic_ids: set[str] | None = None,
+        memory_records: list[TopicMemoryInput] | None = None,
+        model: str | None = None,
+        placement_level: str | None = None,
+        placement_summary: str | None = None,
+        history: list[ChatTurn] | None = None,
+    ) -> Iterator[dict[str, str]]:
+        """Yield SSE-ready events: {"type": "delta"|"replace"|"done", ...}.
+
+        The term-first gate runs incrementally on opening turns: the moment the
+        formal-definition header arrives before the terms block, the stream is
+        cut and replaced by the local teacher. Topic lookup errors raise before
+        any event is produced.
+        """
+        point = self.get_topic(topic_id)
+        mastered_topic_ids = mastered_topic_ids or set()
+        history = history or []
+        profile = self.learning_profile(topic_id, mastered_topic_ids)
+        prompt = build_teacher_prompt(
+            point,
+            student_age=student_age,
+            question=question,
+            learning_profile=profile,
+            topic_names=self._topic_names(),
+            memory_records=memory_records or [],
+            placement_level=placement_level,
+            placement_summary=placement_summary,
+            history=history,
+        )
+        ai_teacher = openai_teacher_from_env(model) or self._ai_teacher
+
+        def local_text() -> str:
+            if history:
+                return build_followup_fallback(question)
+            return build_teacher_answer(
+                point,
+                student_age=student_age,
+                question=question,
+                learning_profile=profile,
+                topic_names=self._topic_names(),
+                memory_records=memory_records or [],
+                placement_level=placement_level,
+                placement_summary=placement_summary,
+            )
+
+        def events() -> Iterator[dict[str, str]]:
+            if ai_teacher is None:
+                yield {"type": "replace", "text": local_text()}
+                yield {"type": "done", "source": "local"}
+                return
+            accumulated = ""
+            try:
+                stream_fn = getattr(ai_teacher, "generate_answer_stream", None)
+                deltas = (
+                    stream_fn(prompt) if stream_fn else iter([ai_teacher.generate_answer(prompt)])
+                )
+                for delta in deltas:
+                    if not delta:
+                        continue
+                    accumulated += delta
+                    if (
+                        not history
+                        and SECTION_FORMAL in accumulated
+                        and not answer_respects_term_first(accumulated)
+                    ):
+                        raise _TermFirstViolation
+                    yield {"type": "delta", "text": delta}
+                if not accumulated or (
+                    not history and not answer_respects_term_first(accumulated)
+                ):
+                    raise _TermFirstViolation
+                yield {"type": "done", "source": "ai"}
+            except _TermFirstViolation:
+                _logger.warning(
+                    "AI stream for %s rejected (term-first gate); using local teacher",
+                    topic_id,
+                )
+                yield {"type": "replace", "text": local_text()}
+                yield {"type": "done", "source": "local"}
+            except Exception:
+                _logger.exception("AI stream failed for %s; using local teacher", topic_id)
+                yield {"type": "replace", "text": local_text()}
+                yield {"type": "done", "source": "local"}
+
+        return events()

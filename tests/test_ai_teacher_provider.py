@@ -1,3 +1,7 @@
+import pytest
+from fastapi.testclient import TestClient
+
+from math_learning_graph.api import create_app
 from math_learning_graph.models import ChatTurn, TopicMemoryInput
 from math_learning_graph.openai_teacher import (
     OpenAITeacherClient,
@@ -34,18 +38,28 @@ VALID_AI_ANSWER = "\n".join(
 
 
 class FakeTeacher:
-    def __init__(self, answer: str = VALID_AI_ANSWER) -> None:
+    def __init__(self, answer: str = VALID_AI_ANSWER, chunk: int = 7) -> None:
         self.answer = answer
+        self.chunk = chunk
         self.prompts: list[str] = []
 
     def generate_answer(self, prompt: str) -> str:
         self.prompts.append(prompt)
         return self.answer
 
+    def generate_answer_stream(self, prompt: str):
+        self.prompts.append(prompt)
+        for i in range(0, len(self.answer), self.chunk):
+            yield self.answer[i : i + self.chunk]
+
 
 class BrokenTeacher:
     def generate_answer(self, prompt: str) -> str:
         raise RuntimeError("provider down")
+
+    def generate_answer_stream(self, prompt: str):
+        raise RuntimeError("provider down")
+        yield  # pragma: no cover - unreachable, marks this a generator
 
 
 def test_service_uses_configured_ai_teacher_with_learning_memory():
@@ -237,3 +251,91 @@ def test_openai_teacher_from_env_requires_model_name(monkeypatch):
     monkeypatch.delenv("OPENAI_MODEL", raising=False)
 
     assert openai_teacher_from_env() is None
+
+
+def _collect_stream(events):
+    text = ""
+    source = None
+    for event in events:
+        if event["type"] == "delta":
+            text += event["text"]
+        elif event["type"] == "replace":
+            text = event["text"]
+        elif event["type"] == "done":
+            source = event["source"]
+    return text, source
+
+
+def test_stream_opening_answer_reassembles_and_marks_ai():
+    service = MathLearningService.create_default(ai_teacher=FakeTeacher())
+
+    text, source = _collect_stream(
+        service.teacher_answer_stream("equality", student_age=30, question="等式是啥？")
+    )
+
+    assert source == "ai"
+    assert text == VALID_AI_ANSWER
+
+
+def test_stream_opening_answer_that_breaks_term_first_is_replaced_by_local():
+    # Formal definition before any terms block — the incremental gate must cut it.
+    bad = f"{SECTION_FORMAL}\n先甩定义。\n{SECTION_TERMS}\n词后补。"
+    service = MathLearningService.create_default(ai_teacher=FakeTeacher(bad))
+
+    text, source = _collect_stream(
+        service.teacher_answer_stream("equality", student_age=30, question="等式是啥？")
+    )
+
+    assert source == "local"
+    assert text != bad
+    assert SECTION_TERMS in text
+    assert text.index(SECTION_TERMS) < text.index(SECTION_FORMAL)
+
+
+def test_stream_followup_allows_free_dialogue():
+    reply = "对，你说得对。再想想：把 3 换成 5 还平衡吗？"
+    service = MathLearningService.create_default(ai_teacher=FakeTeacher(reply))
+    history = [ChatTurn(question="等式是啥？", answer="像天平。")]
+
+    text, source = _collect_stream(
+        service.teacher_answer_stream(
+            "equality", student_age=30, question="平衡吗？", history=history
+        )
+    )
+
+    assert source == "ai"
+    assert text == reply
+
+
+def test_stream_provider_failure_falls_back_to_local():
+    service = MathLearningService.create_default(ai_teacher=BrokenTeacher())
+
+    text, source = _collect_stream(
+        service.teacher_answer_stream("equality", student_age=30, question="等式是啥？")
+    )
+
+    assert source == "local"
+    assert SECTION_TERMS in text
+
+
+def test_stream_unknown_topic_raises_before_any_event():
+    service = MathLearningService.create_default(ai_teacher=FakeTeacher())
+
+    with pytest.raises(KeyError):
+        service.teacher_answer_stream("no_such_topic", student_age=30, question="?")
+
+
+def test_stream_endpoint_emits_sse_events():
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/topics/equality/teacher-answer/stream",
+        json={"age": 30, "question": "等式是啥？"},
+    )
+
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+    body = response.text
+    assert "data: " in body
+    assert '"type": "done"' in body
+    assert '"source": "local"' in body  # no API key in CI -> local teacher

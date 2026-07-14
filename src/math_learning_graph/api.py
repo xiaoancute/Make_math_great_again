@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Iterator
+
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 
 from math_learning_graph.models import (
     AIStatusRequest,
@@ -119,6 +123,32 @@ def create_app() -> FastAPI:
             )
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/topics/{topic_id}/teacher-answer/stream")
+    def stream_teacher_answer(
+        topic_id: str,
+        request: TeacherAnswerRequest,
+    ) -> StreamingResponse:
+        try:
+            events = service.teacher_answer_stream(
+                topic_id,
+                student_age=request.age,
+                question=request.question,
+                mastered_topic_ids=set(request.mastered),
+                memory_records=request.memories,
+                model=request.model,
+                placement_level=request.placement_level,
+                placement_summary=request.placement_summary,
+                history=request.history,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+        def sse() -> Iterator[str]:
+            for event in events:
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(sse(), media_type="text/event-stream")
 
     @app.get("/profiles/{topic_id}", response_model=LearningProfile)
     def get_learning_profile(

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -17,6 +17,7 @@ TEACHER_INSTRUCTIONS = (
 
 class TeacherClient(Protocol):
     def generate_answer(self, prompt: str) -> str: ...
+    def generate_answer_stream(self, prompt: str) -> Iterator[str]: ...
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,19 @@ class OpenAITeacherClient:
             input=prompt,
         )
         return str(getattr(response, "output_text", "")).strip()
+
+    def generate_answer_stream(self, prompt: str) -> Iterator[str]:
+        stream = self._client.responses.create(
+            model=self._config.model,
+            instructions=TEACHER_INSTRUCTIONS,
+            input=prompt,
+            stream=True,
+        )
+        for event in stream:
+            if getattr(event, "type", "") == "response.output_text.delta":
+                delta = str(getattr(event, "delta", ""))
+                if delta:
+                    yield delta
 
 
 def openai_teacher_from_env(model: str | None = None) -> OpenAITeacherClient | None:

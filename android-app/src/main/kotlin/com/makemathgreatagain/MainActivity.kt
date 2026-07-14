@@ -332,34 +332,71 @@ private fun MmgaApp() {
                     state = state.copy(memories = memories)
                 },
                 onAsk = { topic, question ->
-                    val reply = try {
-                        fetchTeacherAnswer(
-                            state.apiBaseUrl,
-                            topic.id,
-                            question,
-                            state.aiModel,
-                            state.learnerAge,
-                            state.mastered,
-                            state.memories.values.toList(),
-                            state.chat,
-                            state.placement?.levelLabel,
-                            state.placement?.summary,
-                        )
-                    } catch (_: Exception) {
-                        if (state.chat.isEmpty()) {
-                            offlineTeacherAnswer(
-                                topic,
-                                question,
-                                state.topics,
-                                state.mastered,
-                                state.placement,
-                            )
-                        } else {
-                            "现在联系不上在线老师，接不上刚才的对话。" +
-                                "先照上面的讲解自查一轮，联网后接着问，会从你停下的地方继续。"
+                    val priorChat = state.chat
+                    state = state.copy(chat = priorChat + ChatTurn(question, ""))
+                    val setLast: ((String) -> String) -> Unit = { transform ->
+                        val turns = state.chat.toMutableList()
+                        if (turns.isNotEmpty()) {
+                            val last = turns.removeAt(turns.lastIndex)
+                            turns.add(last.copy(answer = transform(last.answer)))
+                            state = state.copy(chat = turns)
                         }
                     }
-                    state = state.copy(chat = state.chat + ChatTurn(question, reply))
+                    val body = teacherRequestBody(
+                        question,
+                        state.aiModel,
+                        state.learnerAge,
+                        state.mastered,
+                        state.memories.values.toList(),
+                        priorChat,
+                        state.placement?.levelLabel,
+                        state.placement?.summary,
+                    ).toString()
+                    try {
+                        withContext(Dispatchers.IO) {
+                            streamTeacherAnswer(state.apiBaseUrl, topic.id, body) { type, payload ->
+                                when (type) {
+                                    "delta" -> setLast { it + payload }
+                                    "replace" -> setLast { payload }
+                                    "done" -> if (payload == "local") {
+                                        setLast { text ->
+                                            if (text.startsWith("【离线讲解】")) text
+                                            else "【离线讲解】\n$text"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {
+                        val reply = try {
+                            fetchTeacherAnswer(
+                                state.apiBaseUrl,
+                                topic.id,
+                                question,
+                                state.aiModel,
+                                state.learnerAge,
+                                state.mastered,
+                                state.memories.values.toList(),
+                                priorChat,
+                                state.placement?.levelLabel,
+                                state.placement?.summary,
+                            )
+                        } catch (_: Exception) {
+                            if (priorChat.isEmpty()) {
+                                offlineTeacherAnswer(
+                                    topic,
+                                    question,
+                                    state.topics,
+                                    state.mastered,
+                                    state.placement,
+                                )
+                            } else {
+                                "现在联系不上在线老师，接不上刚才的对话。" +
+                                    "先照上面的讲解自查一轮，联网后接着问，会从你停下的地方继续。"
+                            }
+                        }
+                        setLast { reply }
+                    }
                 },
                 onSaveApiBaseUrl = { url ->
                     val normalized = normalizeBaseUrl(url)
@@ -2180,6 +2217,33 @@ private suspend fun fetchTopics(baseUrl: String): List<Topic> = withContext(Disp
     JSONArray(fetch(baseUrl, "/topics")).toTopics()
 }
 
+private fun teacherRequestBody(
+    question: String,
+    model: String,
+    learnerAge: Int,
+    mastered: Set<String>,
+    memories: List<TopicMemory>,
+    history: List<ChatTurn>,
+    placementLevel: String?,
+    placementSummary: String?,
+): JSONObject {
+    val historyArray = JSONArray()
+    history.forEach { turn ->
+        historyArray.put(
+            JSONObject().put("question", turn.question).put("answer", turn.answer),
+        )
+    }
+    return JSONObject()
+        .put("age", learnerAge.coerceIn(6, 99))
+        .put("question", question)
+        .put("model", model.trim())
+        .put("mastered", JSONArray(mastered.sorted()))
+        .put("memories", memories.sortedBy { it.topicId }.toRequestJsonArray())
+        .put("history", historyArray)
+        .put("placement_level", placementLevel ?: JSONObject.NULL)
+        .put("placement_summary", placementSummary ?: JSONObject.NULL)
+}
+
 private suspend fun fetchTeacherAnswer(
     baseUrl: String,
     topicId: String,
@@ -2192,24 +2256,48 @@ private suspend fun fetchTeacherAnswer(
     placementLevel: String? = null,
     placementSummary: String? = null,
 ): String = withContext(Dispatchers.IO) {
-    val historyArray = JSONArray()
-    history.forEach { turn ->
-        historyArray.put(
-            JSONObject().put("question", turn.question).put("answer", turn.answer),
-        )
-    }
-    val body = JSONObject()
-        .put("age", learnerAge.coerceIn(6, 99))
-        .put("question", question)
-        .put("model", model.trim())
-        .put("mastered", JSONArray(mastered.sorted()))
-        .put("memories", memories.sortedBy { it.topicId }.toRequestJsonArray())
-        .put("history", historyArray)
-        .put("placement_level", placementLevel ?: JSONObject.NULL)
-        .put("placement_summary", placementSummary ?: JSONObject.NULL)
+    val body = teacherRequestBody(
+        question, model, learnerAge, mastered, memories, history,
+        placementLevel, placementSummary,
+    )
     val data = JSONObject(post(baseUrl, "/topics/$topicId/teacher-answer", body.toString()))
     val answer = data.optString("answer")
     if (data.optString("source") == "local") "【离线讲解】\n$answer" else answer
+}
+
+/** Reads the SSE stream; emits ("delta"|"replace", text) and ("done", source). */
+private fun streamTeacherAnswer(
+    baseUrl: String,
+    topicId: String,
+    body: String,
+    onEvent: (String, String) -> Unit,
+) {
+    val connection = URL(normalizeBaseUrl(baseUrl) + "/topics/$topicId/teacher-answer/stream")
+        .openConnection() as HttpURLConnection
+    try {
+        connection.connectTimeout = 3000
+        connection.readTimeout = 90000
+        connection.requestMethod = "POST"
+        connection.doOutput = true
+        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+        connection.setRequestProperty("Accept", "text/event-stream")
+        connection.outputStream.use { output ->
+            output.write(body.toByteArray(StandardCharsets.UTF_8))
+        }
+        if (connection.responseCode >= 400) error("HTTP ${connection.responseCode}")
+        connection.inputStream.bufferedReader(StandardCharsets.UTF_8).useLines { lines ->
+            lines.forEach { line ->
+                if (!line.startsWith("data: ")) return@forEach
+                val event = JSONObject(line.removePrefix("data: "))
+                when (val type = event.optString("type")) {
+                    "delta", "replace" -> onEvent(type, event.optString("text"))
+                    "done" -> onEvent(type, event.optString("source"))
+                }
+            }
+        }
+    } finally {
+        connection.disconnect()
+    }
 }
 
 private suspend fun fetchAiStatus(baseUrl: String, model: String): String =
