@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,6 +79,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,29 +104,74 @@ private const val DEFAULT_API_BASE_URL = "http://10.0.2.2:8000"
 private const val OFFLINE_TOPICS_ASSET = "topics.json"
 private const val DAY_MS = 24L * 60L * 60L * 1000L
 
-private val MmgaColors = lightColorScheme(
-    primary = Color(0xFF2F5EA8),
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF3B5BA5),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE4EDFB),
-    onPrimaryContainer = Color(0xFF163A6B),
-    secondary = Color(0xFF0F7A66),
+    primaryContainer = Color(0xFFDCE7FB),
+    onPrimaryContainer = Color(0xFF14315F),
+    secondary = Color(0xFF1F7A63),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD7F3EC),
-    onSecondaryContainer = Color(0xFF0A4A3D),
-    tertiary = Color(0xFFB35C00),
-    tertiaryContainer = Color(0xFFFFE4C2),
-    background = Color(0xFFF3F5F8),
-    surface = Color.White,
-    surfaceVariant = Color(0xFFE8ECF2),
-    onSurface = Color(0xFF1A2230),
-    onSurfaceVariant = Color(0xFF5A6474),
-    outline = Color(0xFFD4DAE3),
-    error = Color(0xFFB42318),
+    secondaryContainer = Color(0xFFCFEFE4),
+    onSecondaryContainer = Color(0xFF0A473A),
+    tertiary = Color(0xFF9A6212),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFFBE6C6),
+    onTertiaryContainer = Color(0xFF4E3200),
+    background = Color(0xFFF8F6F1),
+    onBackground = Color(0xFF211F1B),
+    surface = Color(0xFFFFFDF9),
+    onSurface = Color(0xFF211F1B),
+    surfaceVariant = Color(0xFFEDE9E0),
+    onSurfaceVariant = Color(0xFF605B50),
+    outline = Color(0xFFD5CFC2),
+    outlineVariant = Color(0xFFE7E2D7),
+    error = Color(0xFFB3261E),
+    onError = Color.White,
+    errorContainer = Color(0xFFF9DEDC),
+    onErrorContainer = Color(0xFF5C120E),
+)
+
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFFAAC4F5),
+    onPrimary = Color(0xFF0E2347),
+    primaryContainer = Color(0xFF2A4478),
+    onPrimaryContainer = Color(0xFFDCE7FB),
+    secondary = Color(0xFF8FD6C1),
+    onSecondary = Color(0xFF00382C),
+    secondaryContainer = Color(0xFF0E5745),
+    onSecondaryContainer = Color(0xFFCFEFE4),
+    tertiary = Color(0xFFE9C08A),
+    onTertiary = Color(0xFF432C00),
+    tertiaryContainer = Color(0xFF6D4A12),
+    onTertiaryContainer = Color(0xFFFBE6C6),
+    background = Color(0xFF19170F),
+    onBackground = Color(0xFFE9E4D8),
+    surface = Color(0xFF211E17),
+    onSurface = Color(0xFFE9E4D8),
+    surfaceVariant = Color(0xFF322E25),
+    onSurfaceVariant = Color(0xFFBEB8A8),
+    outline = Color(0xFF4A463B),
+    outlineVariant = Color(0xFF37342B),
+    error = Color(0xFFF2B8B5),
+    onError = Color(0xFF601410),
+    errorContainer = Color(0xFF8C1D18),
+    onErrorContainer = Color(0xFFF9DEDC),
 )
 
 private val ScreenPad = 16.dp
-private val CardR = RoundedCornerShape(16.dp)
+private val CardR = RoundedCornerShape(18.dp)
 private val PillR = RoundedCornerShape(999.dp)
+
+// One type scale, reading-first: generous line-height, only a few distinct roles.
+private val MmgaTypography = Typography(
+    headlineMedium = TextStyle(fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold),
+    titleLarge = TextStyle(fontSize = 21.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold),
+    titleMedium = TextStyle(fontSize = 18.sp, lineHeight = 25.sp, fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontSize = 17.sp, lineHeight = 27.sp),
+    bodyMedium = TextStyle(fontSize = 15.sp, lineHeight = 23.sp),
+    labelLarge = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
+    labelMedium = TextStyle(fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.Medium),
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -302,7 +351,10 @@ private fun MmgaApp() {
 
     LaunchedEffect(Unit) { loadTopics() }
 
-    MaterialTheme(colorScheme = MmgaColors) {
+    MaterialTheme(
+        colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
+        typography = MmgaTypography,
+    ) {
         Surface(color = MaterialTheme.colorScheme.background) {
             AppScreen(
                 state = state,
@@ -721,15 +773,14 @@ private fun GreetingCard(
     placementLabel: String? = null,
     placementSummary: String? = null,
 ) {
-    SoftCard {
+    AccentCard {
         Text(
             when {
                 dueCount > 0 -> "先把旧的捡回来"
                 mastered == 0 -> "从一小节开始就行"
                 else -> "今天再往前挪一点"
             },
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLarge,
         )
         if (placementLabel != null) {
             Body("摸底大概在：$placementLabel")
@@ -744,16 +795,15 @@ private fun GreetingCard(
         if (!placementSummary.isNullOrBlank()) {
             Text(
                 placementSummary,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp,
-                lineHeight = 19.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                style = MaterialTheme.typography.labelMedium,
             )
         }
         if (offline) {
             Text(
                 "没联网也没关系，照样能学",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }
@@ -785,7 +835,7 @@ private fun ActionCard(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
             )
-            Text(title, fontSize = 24.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
+            Text(title, style = MaterialTheme.typography.titleLarge)
             Body(body)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onPrimary, shape = CardR) { Text(primary) }
@@ -886,7 +936,7 @@ private fun SchoolScreen(
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
         item {
-            Text("翻课本", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("翻课本", style = MaterialTheme.typography.titleLarge)
             Body("选年级，点开就学。")
         }
         item {
@@ -1019,7 +1069,7 @@ private fun ReviewScreen(
     ) {
         item {
             SoftCard {
-                Text("温习", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("温习", style = MaterialTheme.typography.titleLarge)
                 Body(
                     if (plan.due.isEmpty()) "今天没有该温习的。想学新的就回「今天」，或者随便翻一个。"
                     else "别急着点按钮。先想想：你还能自己讲出来吗？",
@@ -1043,7 +1093,7 @@ private fun ReviewScreen(
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Text(focus.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text(focus.name, style = MaterialTheme.typography.titleLarge)
                         Body(focus.human)
                         if (focus.reflectionQuestions.isNotEmpty()) {
                             Text(
@@ -1132,7 +1182,7 @@ private fun LessonScreen(
                 .padding(horizontal = ScreenPad),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(topic.name, fontSize = 26.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
+            Text(topic.name, style = MaterialTheme.typography.headlineMedium)
             Text(
                 topic.schoolPlace(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1290,7 +1340,7 @@ private fun LessonBlock(content: @Composable ColumnScope.() -> Unit) {
 
 @Composable
 private fun BigLine(text: String) {
-    Text(text, fontSize = 18.sp, lineHeight = 28.sp, fontWeight = FontWeight.Medium)
+    Text(text, style = MaterialTheme.typography.titleMedium)
 }
 
 @Composable
@@ -1316,8 +1366,12 @@ private fun TermCard(term: String, meaning: String) {
         shape = CardR,
         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(term, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                term,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
             Body(meaning)
         }
     }
@@ -1343,29 +1397,43 @@ private fun StuckPanel(
             Body("我猜你可能还缺：$weak")
         }
         chat.forEach { turn ->
-            Surface(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = CardR,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                horizontalArrangement = Arrangement.End,
             ) {
-                Text(
-                    "你：${turn.question}",
-                    modifier = Modifier.padding(12.dp),
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                )
+                Surface(
+                    modifier = Modifier.fillMaxWidth(0.86f),
+                    shape = CardR,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ) {
+                    Text(
+                        turn.question,
+                        modifier = Modifier.padding(14.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = CardR,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-            ) {
-                Text(
-                    turn.answer,
-                    modifier = Modifier.padding(14.dp),
-                    fontSize = 15.sp,
-                    lineHeight = 23.sp,
-                )
+            if (turn.answer.isNotBlank()) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "老师",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = CardR,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ) {
+                        Text(
+                            turn.answer,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
             }
         }
         if (chat.isEmpty()) {
@@ -1533,7 +1601,7 @@ private fun PlacementScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         SoftCard {
-            Text("先摸个底", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text("先摸个底", style = MaterialTheme.typography.titleLarge)
             Body("不是考试。就想知道你卡在哪些词、哪些关系上。答完再开始讲。")
             Text(
                 "${index + 1} / ${items.size}",
@@ -1925,10 +1993,33 @@ private fun SoftCard(
         modifier = modifier.fillMaxWidth(),
         shape = CardR,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        tonalElevation = 1.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            content = content,
+        )
+    }
+}
+
+/** Emphasis block: warm tinted card for greetings, placement intro, review nudges. */
+@Composable
+private fun AccentCard(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = CardR,
+        color = color,
+        contentColor = contentColor,
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             content = content,
         )
@@ -1940,9 +2031,8 @@ private fun Body(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
         modifier = modifier,
+        style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        fontSize = 15.sp,
-        lineHeight = 23.sp,
     )
 }
 
