@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math_learning_graph.curriculum_expand import load_expanded_knowledge_points
 from math_learning_graph.curriculum_seed import load_curriculum_knowledge_points
 from math_learning_graph.depth import with_deep_scaffold
 from math_learning_graph.high_school_seed import load_high_school_knowledge_points
@@ -751,6 +752,7 @@ def _merge_knowledge_points() -> list[KnowledgePoint]:
         for point in [
             *core_points,
             *load_curriculum_knowledge_points(),
+            *load_expanded_knowledge_points(),
             *load_high_school_knowledge_points(),
         ]
     ]
