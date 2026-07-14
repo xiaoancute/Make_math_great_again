@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from math_learning_graph.models import (
     DiagnosticAnswer,
     DiagnosticItem,
@@ -98,6 +100,62 @@ def load_diagnostic_items() -> list[DiagnosticItem]:
             level_rank=4,
             probes="函数是不是只剩定义句，没有输入输出画面",
         ),
+        DiagnosticItem(
+            id="d_set",
+            prompt="「集合」这个词，最先该抓住哪一层意思？",
+            choices=[
+                "把一些确定的对象放在一起当成一个整体看，关键是说清「谁在里面、谁不在」",
+                "就是一堆数字的另一种叫法",
+                "必须写成花括号才算数学",
+                "还没学过这个词，说不上来",
+            ],
+            correct_index=0,
+            topic_id="set_concept",
+            level_rank=5,
+            probes="集合是不是只剩记号，没有「确定对象的整体」这层画面",
+        ),
+        DiagnosticItem(
+            id="d_monotonic",
+            prompt="「函数单调递增」在描述什么关系？",
+            choices=[
+                "图像必须是一条直线",
+                "y 的值永远是正数",
+                "在一段范围里，x 越大 y 跟着越大——两个量变化方向一致",
+                "还没学过，说不上来",
+            ],
+            correct_index=2,
+            topic_id="function_properties_high_school",
+            level_rank=5,
+            probes="单调性是不是被当成图形口诀，而不是两个量的变化关系",
+        ),
+        DiagnosticItem(
+            id="d_sine",
+            prompt="「sin（正弦）」最先该抓住什么？",
+            choices=[
+                "计算器上的一个按键，按了就有答案",
+                "直角三角形里，锐角定了，对边与斜边的比也就定了——sin 说的就是这个比",
+                "一串必须背下来的公式",
+                "还没学过，说不上来",
+            ],
+            correct_index=1,
+            topic_id="trigonometric_functions",
+            level_rank=6,
+            probes="三角函数是不是只剩按键和口诀，没有「角定则比定」的画面",
+        ),
+        DiagnosticItem(
+            id="d_derivative",
+            prompt="「导数」这个词，先抓哪一层意思？",
+            choices=[
+                "一个套公式算出来的结果，意义不重要",
+                "某一瞬间变化有多快——像车速表指针读数，不是全程平均速度",
+                "和斜率没有关系的全新概念",
+                "还没学过，说不上来",
+            ],
+            correct_index=1,
+            topic_id="derivative_intro",
+            level_rank=6,
+            probes="导数是不是只会求，说不出「瞬时变化率」的画面",
+        ),
     ]
 
 
@@ -124,7 +182,10 @@ def public_diagnostic_session() -> DiagnosticSession:
     )
 
 
-def score_diagnostic(answers: list[DiagnosticAnswer]) -> DiagnosticResult:
+def score_diagnostic(
+    answers: list[DiagnosticAnswer],
+    topic_names: Mapping[str, str] | None = None,
+) -> DiagnosticResult:
     items = {item.id: item for item in load_diagnostic_items()}
     if not answers:
         return DiagnosticResult(
@@ -138,32 +199,43 @@ def score_diagnostic(answers: list[DiagnosticAnswer]) -> DiagnosticResult:
             total_count=len(items),
         )
 
-    known: list[str] = []
-    weak: list[str] = []
-    correct_count = 0
-    highest_correct_rank = 0
-
-    answered_ids = {answer.item_id for answer in answers}
+    answered_ids = [answer.item_id for answer in answers]
+    if len(answered_ids) != len(set(answered_ids)):
+        raise ValueError("Diagnostic item ids must be unique")
     for answer in answers:
         item = items.get(answer.item_id)
         if item is None:
-            continue
-        if answer.choice_index == item.correct_index:
+            raise ValueError(f"Unknown diagnostic item id: {answer.item_id}")
+        if answer.choice_index >= len(item.choices):
+            raise ValueError(f"Invalid choice index for diagnostic item: {answer.item_id}")
+
+    known: list[str] = []
+    wrong: list[str] = []
+    correct_count = 0
+    rank_results: dict[int, list[bool]] = {}
+
+    for answer in answers:
+        item = items[answer.item_id]
+        is_correct = answer.choice_index == item.correct_index
+        rank_results.setdefault(item.level_rank, []).append(is_correct)
+        if is_correct:
             correct_count += 1
             if item.topic_id not in known:
                 known.append(item.topic_id)
-            highest_correct_rank = max(highest_correct_rank, item.level_rank)
-        elif item.topic_id not in weak:
-            weak.append(item.topic_id)
+        elif item.topic_id not in wrong:
+            wrong.append(item.topic_id)
 
-    # Unanswered ladder items below attempted max still count as unknown if skipped.
-    for item in load_diagnostic_items():
-        if item.id not in answered_ids and item.topic_id not in known and item.topic_id not in weak:
-            weak.append(item.topic_id)
+    # Unanswered items are unprobed, not weak — an old client that only shows the
+    # junior ladder must not get senior topics stamped into its weak list.
+    level_rank, level_label = _level_from_ranks(rank_results)
 
-    level_rank, level_label = _level_from_score(correct_count, highest_correct_rank, weak)
+    # Only frontier misses count as weak: a primary kid failing the derivative
+    # probe hasn't "broken" anything — that rung just isn't theirs yet.
+    topic_rank = {item.topic_id: item.level_rank for item in items.values()}
+    weak = [t for t in wrong if topic_rank.get(t, 1) <= level_rank + 1]
+
     starter = _starter_topic(known, weak)
-    summary = _summary(level_label, known, weak, starter)
+    summary = _summary(level_label, known, weak, starter, topic_names or {})
 
     return DiagnosticResult(
         level_label=level_label,
@@ -173,28 +245,36 @@ def score_diagnostic(answers: list[DiagnosticAnswer]) -> DiagnosticResult:
         weak_topic_ids=weak,
         summary=summary,
         correct_count=correct_count,
-        total_count=len(items),
+        total_count=len(answers),
     )
 
 
-def _level_from_score(
-    correct_count: int,
-    highest_correct_rank: int,
-    weak: list[str],
-) -> tuple[int, str]:
-    if correct_count == 0:
-        return 1, "小学起步"
-    if highest_correct_rank <= 1 or correct_count <= 1:
-        return 1, "小学起步"
-    if highest_correct_rank == 2 or correct_count <= 3:
-        return 2, "小学中段"
-    if "linear_equation_one_variable" in weak and highest_correct_rank >= 3:
-        return 3, "小初衔接"
-    if highest_correct_rank >= 4 and correct_count >= 5:
-        return 4, "初中函数入门"
-    if highest_correct_rank >= 3:
-        return 3, "初中入门"
-    return 2, "小学中段"
+_LEVEL_LABELS = {
+    1: "小学起步",
+    2: "小学中段",
+    3: "小初衔接",
+    4: "初中函数入门",
+    5: "高中入门",
+    6: "高中根基",
+}
+
+
+def _level_from_ranks(rank_results: dict[int, list[bool]]) -> tuple[int, str]:
+    """Climb the ladder rung by rung: a rank counts once every rank below it is
+    fully confirmed and it has at least one correct answer. Acing the function
+    probe while misreading the equals sign does not make you 初中水平."""
+    level = 1
+    confirmed = 0
+    for rank in sorted(rank_results):
+        if rank > confirmed + 1:
+            break
+        results = rank_results[rank]
+        if any(results):
+            level = max(level, rank)
+        if not all(results):
+            break
+        confirmed = rank
+    return level, _LEVEL_LABELS[level]
 
 
 def _starter_topic(known: list[str], weak: list[str]) -> str:
@@ -205,6 +285,10 @@ def _starter_topic(known: list[str], weak: list[str]) -> str:
         "linear_equation_one_variable",
         "transposition",
         "function_intro",
+        "set_concept",
+        "function_properties_high_school",
+        "trigonometric_functions",
+        "derivative_intro",
     ]
     for topic_id in ladder:
         if topic_id in weak:
@@ -212,17 +296,27 @@ def _starter_topic(known: list[str], weak: list[str]) -> str:
     for topic_id in ladder:
         if topic_id not in known:
             return topic_id
-    return "function_intro"
+    return "derivative_intro"
 
 
-def _summary(level_label: str, known: list[str], weak: list[str], starter: str) -> str:
-    known_text = "、".join(known) if known else "还没确认会的"
-    weak_text = "、".join(weak) if weak else "暂时没扫出大洞"
+def _summary(
+    level_label: str,
+    known: list[str],
+    weak: list[str],
+    starter: str,
+    topic_names: Mapping[str, str],
+) -> str:
+    def show(topic_ids: list[str]) -> str:
+        return "、".join(topic_names.get(t, t) for t in topic_ids)
+
+    known_text = show(known) if known else "还没确认会的"
+    weak_text = show(weak) if weak else "暂时没扫出大洞"
+    starter_text = topic_names.get(starter, starter)
     return (
         f"摸底结果：大约在「{level_label}」。"
         f"看起来比较稳的有：{known_text}。"
         f"更该先补的是：{weak_text}。"
-        f"建议下一课从「{starter}」相关内容开始；"
+        f"建议下一课从「{starter_text}」相关内容开始；"
         "讲的时候仍会先拆词，不默认你会课本术语。"
     )
 

@@ -140,7 +140,7 @@ class TopicMemoryInput(BaseModel):
 class TeacherAnswerRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    age: int = Field(ge=6, le=16)
+    age: int = Field(ge=6, le=99)
     question: str = Field(min_length=1)
     model: str | None = None
     mastered: list[str] = Field(default_factory=list)
@@ -174,7 +174,7 @@ class DiagnosticItem(BaseModel):
     choices: list[str]
     correct_index: int = Field(ge=0)
     topic_id: str
-    level_rank: int = Field(ge=1, le=5)
+    level_rank: int = Field(ge=1, le=6)
     probes: str = ""
 
 
@@ -187,7 +187,7 @@ class DiagnosticItemPublic(BaseModel):
     prompt: str
     choices: list[str]
     topic_id: str
-    level_rank: int = Field(ge=1, le=5)
+    level_rank: int = Field(ge=1, le=6)
     probes: str = ""
 
 
@@ -216,7 +216,7 @@ class DiagnosticResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     level_label: str
-    level_rank: int = Field(ge=0, le=5)
+    level_rank: int = Field(ge=0, le=6)
     starter_topic_id: str
     known_topic_ids: list[str] = Field(default_factory=list)
     weak_topic_ids: list[str] = Field(default_factory=list)

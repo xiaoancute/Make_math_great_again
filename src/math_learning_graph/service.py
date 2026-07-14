@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from math_learning_graph.diagnostic import public_diagnostic_session, score_diagnostic
 from math_learning_graph.graph import KnowledgeGraph
 from math_learning_graph.models import (
@@ -20,7 +22,13 @@ from math_learning_graph.seed import (
     load_knowledge_points,
     load_roadmap_items,
 )
-from math_learning_graph.teacher import build_teacher_answer, build_teacher_prompt
+from math_learning_graph.teacher import (
+    answer_respects_term_first,
+    build_teacher_answer,
+    build_teacher_prompt,
+)
+
+_logger = logging.getLogger(__name__)
 
 
 class MathLearningService:
@@ -65,7 +73,7 @@ class MathLearningService:
         return public_diagnostic_session()
 
     def score_diagnostic(self, answers: list[DiagnosticAnswer]) -> DiagnosticResult:
-        return score_diagnostic(answers)
+        return score_diagnostic(answers, topic_names=self._topic_names())
 
     def teacher_prompt(
         self,
@@ -121,14 +129,18 @@ class MathLearningService:
         if ai_teacher is not None:
             try:
                 answer = ai_teacher.generate_answer(prompt)
-                if answer:
+                if answer and answer_respects_term_first(answer):
                     return TeacherAnswerResponse(
                         topic_id=topic_id,
                         answer=answer,
                         learning_profile=profile,
                     )
+                _logger.warning(
+                    "AI teacher answer for %s rejected (term-first gate); using local teacher",
+                    topic_id,
+                )
             except Exception:
-                pass
+                _logger.exception("AI teacher failed for %s; using local teacher", topic_id)
         return TeacherAnswerResponse(
             topic_id=topic_id,
             answer=build_teacher_answer(

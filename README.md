@@ -4,8 +4,9 @@
 understand *what relationship is being talked about*, before formal textbook
 language. See [`docs/product.md`](docs/product.md).
 
-Backend-first framework plus a thin Android learning shell for a
-primary-to-junior-high math learning app.
+Backend-first framework plus a thin Android learning shell for an
+all-ages math learning app (primary school through senior high and
+adult self-learners).
 
 The project focuses on the reusable core:
 

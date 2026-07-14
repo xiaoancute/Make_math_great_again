@@ -93,6 +93,8 @@ private const val LEGACY_MASTERED_TOPICS = "mastered_topics"
 private const val TOPIC_MEMORIES = "topic_memories"
 private const val API_BASE_URL_PREF = "api_base_url"
 private const val AI_MODEL_PREF = "ai_model"
+private const val LEARNER_AGE_PREF = "learner_age"
+private const val DEFAULT_LEARNER_AGE = 12
 private const val PLACEMENT_PREF = "placement_result"
 private const val DEFAULT_API_BASE_URL = "http://10.0.2.2:8000"
 private const val OFFLINE_TOPICS_ASSET = "topics.json"
@@ -214,6 +216,7 @@ private data class UiState(
     val answer: String = "",
     val apiBaseUrl: String = DEFAULT_API_BASE_URL,
     val aiModel: String = "",
+    val learnerAge: Int = DEFAULT_LEARNER_AGE,
     val aiStatus: String = "",
     val dataSource: String = "离线",
     val syncWarning: String? = null,
@@ -261,6 +264,7 @@ private fun MmgaApp() {
                 memories = loadTopicMemories(context),
                 apiBaseUrl = loadApiBaseUrl(context),
                 aiModel = loadAiModel(context),
+                learnerAge = loadLearnerAge(context),
                 placement = savedPlacement,
                 showPlacement = savedPlacement == null,
             ),
@@ -331,6 +335,7 @@ private fun MmgaApp() {
                                 topic.id,
                                 question,
                                 state.aiModel,
+                                state.learnerAge,
                                 state.mastered,
                                 state.memories.values.toList(),
                                 state.placement?.levelLabel,
@@ -359,6 +364,10 @@ private fun MmgaApp() {
                     val normalized = model.trim()
                     saveAiModel(context, normalized)
                     state = state.copy(aiModel = normalized)
+                },
+                onSaveLearnerAge = { age ->
+                    saveLearnerAge(context, age)
+                    state = state.copy(learnerAge = age.coerceIn(6, 99))
                 },
                 onCheckAi = { url, model ->
                     val nUrl = normalizeBaseUrl(url)
@@ -425,6 +434,7 @@ private fun AppScreen(
     onAsk: suspend (Topic, String) -> Unit,
     onSaveApiBaseUrl: (String) -> Unit,
     onSaveAiModel: (String) -> Unit,
+    onSaveLearnerAge: (Int) -> Unit,
     onCheckAi: (String, String) -> Unit,
     onStartPlacement: () -> Unit,
     onPlacementFinished: (PlacementResult) -> Unit,
@@ -512,6 +522,7 @@ private fun AppScreen(
                 state = state,
                 onSaveApiBaseUrl = onSaveApiBaseUrl,
                 onSaveAiModel = onSaveAiModel,
+                onSaveLearnerAge = onSaveLearnerAge,
                 onCheckAi = onCheckAi,
                 onStartPlacement = onStartPlacement,
                 modifier = Modifier.padding(padding),
@@ -1372,12 +1383,14 @@ private fun SettingsScreen(
     state: UiState,
     onSaveApiBaseUrl: (String) -> Unit,
     onSaveAiModel: (String) -> Unit,
+    onSaveLearnerAge: (Int) -> Unit,
     onCheckAi: (String, String) -> Unit,
     onStartPlacement: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var apiBaseUrl by rememberSaveable(state.apiBaseUrl) { mutableStateOf(state.apiBaseUrl) }
     var aiModel by rememberSaveable(state.aiModel) { mutableStateOf(state.aiModel) }
+    var ageText by rememberSaveable(state.learnerAge) { mutableStateOf(state.learnerAge.toString()) }
 
     Column(
         modifier = modifier
@@ -1413,6 +1426,18 @@ private fun SettingsScreen(
             }
             if (aiModel.trim() != state.aiModel) {
                 TextButton(onClick = { onSaveAiModel(aiModel) }) { Text("把模型名也存上") }
+            }
+            OutlinedTextField(
+                value = ageText,
+                onValueChange = { ageText = it.filter(Char::isDigit).take(2) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("你的年龄（讲解会照这个调语气）") },
+                shape = CardR,
+            )
+            val parsedAge = ageText.toIntOrNull()
+            if (parsedAge != null && parsedAge in 6..99 && parsedAge != state.learnerAge) {
+                TextButton(onClick = { onSaveLearnerAge(parsedAge) }) { Text("存一下年龄") }
             }
             if (state.aiStatus.isNotBlank()) Body(state.aiStatus)
             Body("现在是${state.dataSource}内容 · 你已经弄懂 ${state.mastered.size} 个")
@@ -1613,6 +1638,90 @@ private fun offlineDiagnosticItems(): List<DiagnosticItem> = listOf(
         topicId = "function_intro",
         correctIndex = 1,
     ),
+    DiagnosticItem(
+        id = "d_set",
+        prompt = "「集合」这个词，最先该抓住哪一层意思？",
+        choices = listOf(
+            "把一些确定的对象放在一起当成一个整体看，关键是说清「谁在里面、谁不在」",
+            "就是一堆数字的另一种叫法",
+            "必须写成花括号才算数学",
+            "还没学过这个词，说不上来",
+        ),
+        topicId = "set_concept",
+        correctIndex = 0,
+    ),
+    DiagnosticItem(
+        id = "d_monotonic",
+        prompt = "「函数单调递增」在描述什么关系？",
+        choices = listOf(
+            "图像必须是一条直线",
+            "y 的值永远是正数",
+            "在一段范围里，x 越大 y 跟着越大——两个量变化方向一致",
+            "还没学过，说不上来",
+        ),
+        topicId = "function_properties_high_school",
+        correctIndex = 2,
+    ),
+    DiagnosticItem(
+        id = "d_sine",
+        prompt = "「sin（正弦）」最先该抓住什么？",
+        choices = listOf(
+            "计算器上的一个按键，按了就有答案",
+            "直角三角形里，锐角定了，对边与斜边的比也就定了——sin 说的就是这个比",
+            "一串必须背下来的公式",
+            "还没学过，说不上来",
+        ),
+        topicId = "trigonometric_functions",
+        correctIndex = 1,
+    ),
+    DiagnosticItem(
+        id = "d_derivative",
+        prompt = "「导数」这个词，先抓哪一层意思？",
+        choices = listOf(
+            "一个套公式算出来的结果，意义不重要",
+            "某一瞬间变化有多快——像车速表指针读数，不是全程平均速度",
+            "和斜率没有关系的全新概念",
+            "还没学过，说不上来",
+        ),
+        topicId = "derivative_intro",
+        correctIndex = 1,
+    ),
+)
+
+// Mirrors backend diagnostic.py — ids, ranks and names must stay in lockstep.
+private val diagnosticRanks = mapOf(
+    "equality" to 1,
+    "fraction" to 2,
+    "quantity_relationship" to 2,
+    "linear_equation_one_variable" to 3,
+    "transposition" to 3,
+    "function_intro" to 4,
+    "set_concept" to 5,
+    "function_properties_high_school" to 5,
+    "trigonometric_functions" to 6,
+    "derivative_intro" to 6,
+)
+
+private val diagnosticNames = mapOf(
+    "equality" to "等式",
+    "fraction" to "分数",
+    "quantity_relationship" to "数量关系",
+    "linear_equation_one_variable" to "一元一次方程",
+    "transposition" to "移项",
+    "function_intro" to "函数入门",
+    "set_concept" to "集合",
+    "function_properties_high_school" to "函数性质",
+    "trigonometric_functions" to "三角函数",
+    "derivative_intro" to "导数入门",
+)
+
+private val diagnosticLevelLabels = mapOf(
+    1 to "小学起步",
+    2 to "小学中段",
+    3 to "小初衔接",
+    4 to "初中函数入门",
+    5 to "高中入门",
+    6 to "高中根基",
 )
 
 private fun scoreDiagnosticLocal(
@@ -1620,40 +1729,32 @@ private fun scoreDiagnosticLocal(
     items: List<DiagnosticItem>,
 ): PlacementResult {
     val known = mutableListOf<String>()
-    val weak = mutableListOf<String>()
+    val wrong = mutableListOf<String>()
     var correct = 0
-    var highest = 0
-    val ranks = mapOf(
-        "equality" to 1,
-        "fraction" to 2,
-        "quantity_relationship" to 2,
-        "linear_equation_one_variable" to 3,
-        "transposition" to 3,
-        "function_intro" to 4,
-    )
+    val rankResults = sortedMapOf<Int, MutableList<Boolean>>()
     items.forEach { item ->
-        val choice = answers[item.id]
-        if (choice == item.correctIndex) {
+        val answered = answers[item.id] ?: return@forEach
+        val ok = answered == item.correctIndex
+        rankResults.getOrPut(diagnosticRanks[item.topicId] ?: 1) { mutableListOf() }.add(ok)
+        if (ok) {
             correct += 1
             if (item.topicId !in known) known += item.topicId
-            highest = maxOf(highest, ranks[item.topicId] ?: 1)
-        } else if (item.topicId !in weak) {
-            weak += item.topicId
+        } else if (item.topicId !in wrong) {
+            wrong += item.topicId
         }
     }
-    val levelRank = when {
-        correct == 0 || highest <= 1 || correct <= 1 -> 1
-        highest == 2 || correct <= 3 -> 2
-        highest >= 4 && correct >= 5 -> 4
-        highest >= 3 -> 3
-        else -> 2
+    // Climb rung by rung: a rank counts once every rank below is fully confirmed.
+    var levelRank = 1
+    var confirmed = 0
+    for ((rank, results) in rankResults) {
+        if (rank > confirmed + 1) break
+        if (results.any { it }) levelRank = maxOf(levelRank, rank)
+        if (!results.all { it }) break
+        confirmed = rank
     }
-    val levelLabel = when (levelRank) {
-        1 -> "小学起步"
-        2 -> "小学中段"
-        3 -> "初中入门"
-        else -> "初中函数入门"
-    }
+    val levelLabel = diagnosticLevelLabels[levelRank] ?: "小学起步"
+    // Only frontier misses are weak; a kid failing the derivative probe isn't "weak".
+    val weak = wrong.filter { (diagnosticRanks[it] ?: 1) <= levelRank + 1 }
     val ladder = listOf(
         "equality",
         "fraction",
@@ -1661,15 +1762,21 @@ private fun scoreDiagnosticLocal(
         "linear_equation_one_variable",
         "transposition",
         "function_intro",
+        "set_concept",
+        "function_properties_high_school",
+        "trigonometric_functions",
+        "derivative_intro",
     )
     val starter = ladder.firstOrNull { it in weak }
         ?: ladder.firstOrNull { it !in known }
-        ?: "function_intro"
-    val knownText = known.joinToString("、").ifBlank { "还没确认会的" }
-    val weakText = weak.joinToString("、").ifBlank { "暂时没扫出大洞" }
+        ?: "derivative_intro"
+    fun show(ids: List<String>) = ids.joinToString("、") { diagnosticNames[it] ?: it }
+    val knownText = show(known).ifBlank { "还没确认会的" }
+    val weakText = show(weak).ifBlank { "暂时没扫出大洞" }
+    val starterText = diagnosticNames[starter] ?: starter
     val summary =
         "摸底结果：大约在「$levelLabel」。看起来比较稳的有：$knownText。" +
-            "更该先补的是：$weakText。建议下一课从「$starter」相关内容开始；" +
+            "更该先补的是：$weakText。建议下一课从「$starterText」相关内容开始；" +
             "讲的时候仍会先拆词，不默认你会课本术语。"
     return PlacementResult(
         levelLabel = levelLabel,
@@ -1679,7 +1786,7 @@ private fun scoreDiagnosticLocal(
         weakTopicIds = weak,
         summary = summary,
         correctCount = correct,
-        totalCount = items.size,
+        totalCount = answers.size,
     )
 }
 
@@ -2057,13 +2164,14 @@ private suspend fun fetchTeacherAnswer(
     topicId: String,
     question: String,
     model: String,
+    learnerAge: Int,
     mastered: Set<String>,
     memories: List<TopicMemory>,
     placementLevel: String? = null,
     placementSummary: String? = null,
 ): String = withContext(Dispatchers.IO) {
     val body = JSONObject()
-        .put("age", 12)
+        .put("age", learnerAge.coerceIn(6, 99))
         .put("question", question)
         .put("model", model.trim())
         .put("mastered", JSONArray(mastered.sorted()))
@@ -2335,6 +2443,18 @@ private fun saveAiModel(context: Context, value: String) {
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         .edit()
         .putString(AI_MODEL_PREF, value)
+        .apply()
+}
+
+private fun loadLearnerAge(context: Context): Int =
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getInt(LEARNER_AGE_PREF, DEFAULT_LEARNER_AGE)
+        .coerceIn(6, 99)
+
+private fun saveLearnerAge(context: Context, value: Int) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putInt(LEARNER_AGE_PREF, value.coerceIn(6, 99))
         .apply()
 }
 

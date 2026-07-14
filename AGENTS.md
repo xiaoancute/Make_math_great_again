@@ -15,7 +15,7 @@ DO NOT send optional commentary
 
 ## 项目结构与模块组织
 
-这是一个后端优先项目，用于小学到初中数学学习 App 的核心能力，并带一个很薄的 Android 壳子。Python 源码位于 `src/math_learning_graph/`：
+这是一个后端优先项目，用于全年龄（小学到高中及成人自学者，6–99 岁）数学学习 App 的核心能力，并带一个很薄的 Android 壳子。Python 源码位于 `src/math_learning_graph/`：
 
 - `api.py`：FastAPI 应用和 HTTP 接口。
 - `models.py`：Pydantic 数据模型。

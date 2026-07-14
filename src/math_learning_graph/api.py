@@ -42,7 +42,10 @@ def create_app() -> FastAPI:
 
     @app.post("/diagnostic/submit", response_model=DiagnosticResult)
     def submit_diagnostic(request: DiagnosticSubmitRequest) -> DiagnosticResult:
-        return service.score_diagnostic(request.answers)
+        try:
+            return service.score_diagnostic(request.answers)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/domains", response_model=list[DomainOverview])
     def list_domains() -> list[DomainOverview]:
@@ -66,7 +69,7 @@ def create_app() -> FastAPI:
     @app.get("/topics/{topic_id}/teacher-prompt", response_model=TeacherPromptResponse)
     def get_teacher_prompt(
         topic_id: str,
-        age: int = Query(ge=6, le=16),
+        age: int = Query(ge=6, le=99),
         question: str = Query(min_length=1),
         mastered: str = Query(default=""),
     ) -> TeacherPromptResponse:
@@ -83,7 +86,7 @@ def create_app() -> FastAPI:
     @app.get("/topics/{topic_id}/teacher-answer", response_model=TeacherAnswerResponse)
     def get_teacher_answer(
         topic_id: str,
-        age: int = Query(ge=6, le=16),
+        age: int = Query(ge=6, le=99),
         question: str = Query(min_length=1),
         mastered: str = Query(default=""),
     ) -> TeacherAnswerResponse:

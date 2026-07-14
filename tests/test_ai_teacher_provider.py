@@ -5,10 +5,36 @@ from math_learning_graph.openai_teacher import (
     openai_teacher_from_env,
 )
 from math_learning_graph.service import MathLearningService
+from math_learning_graph.teacher import (
+    SECTION_CHECK,
+    SECTION_EXAMPLE,
+    SECTION_FORMAL,
+    SECTION_TERMS,
+    SECTION_WHAT,
+    SECTION_WHY,
+    answer_respects_term_first,
+)
+
+VALID_AI_ANSWER = "\n".join(
+    [
+        SECTION_TERMS,
+        "等号：表示两边一样多。",
+        SECTION_WHAT,
+        "在讲两边保持相等。",
+        SECTION_WHY,
+        "为了在不知道某个量时继续推理。",
+        SECTION_EXAMPLE,
+        "像天平两边同时减去同样重量。",
+        SECTION_FORMAL,
+        "等式两边同时做相同运算，等式仍成立。",
+        SECTION_CHECK,
+        "你能说出为什么两边要做同样的事吗？",
+    ]
+)
 
 
 class FakeTeacher:
-    def __init__(self, answer: str = "这是 AI 生成的讲解") -> None:
+    def __init__(self, answer: str = VALID_AI_ANSWER) -> None:
         self.answer = answer
         self.prompts: list[str] = []
 
@@ -47,7 +73,7 @@ def test_service_uses_configured_ai_teacher_with_learning_memory():
         ],
     )
 
-    assert response.answer == "这是 AI 生成的讲解"
+    assert response.answer == VALID_AI_ANSWER
     assert teacher.prompts
     assert "不要假设学生已经知道" in teacher.prompts[0]
     assert "【先弄懂这些词】" in teacher.prompts[0]
@@ -67,6 +93,52 @@ def test_service_falls_back_to_local_teacher_when_ai_provider_fails():
     assert "【先弄懂这些词】" in response.answer
     assert response.answer.index("【先弄懂这些词】") < response.answer.index("【课本会怎么说】")
     assert "函数" in response.answer
+
+
+def test_service_falls_back_when_ai_answer_breaks_term_first_order():
+    service = MathLearningService.create_default(ai_teacher=FakeTeacher("这是 AI 生成的讲解"))
+
+    response = service.teacher_answer(
+        "function_intro",
+        student_age=12,
+        question="函数为什么要存在？",
+    )
+
+    assert response.answer != "这是 AI 生成的讲解"
+    assert response.answer.index(SECTION_TERMS) < response.answer.index(SECTION_FORMAL)
+
+
+def test_service_keeps_good_ai_answer_even_with_extra_intro_line():
+    # A model answer with an intro line and no rigid six-header template is still
+    # accepted as long as terms come before the formal definition.
+    flexible_answer = "\n".join(
+        [
+            "好问题！我们一步步来。",
+            SECTION_TERMS,
+            "函数：一个量跟着另一个量变，一个输入只对一个输出。",
+            SECTION_EXAMPLE,
+            "打车费用跟着公里数变。",
+            SECTION_FORMAL,
+            "设 x、y 是两个变量，若对每个 x 都有唯一的 y 与之对应，则 y 是 x 的函数。",
+        ]
+    )
+    service = MathLearningService.create_default(ai_teacher=FakeTeacher(flexible_answer))
+
+    response = service.teacher_answer(
+        "function_intro",
+        student_age=35,
+        question="函数为什么要存在？",
+    )
+
+    assert response.answer == flexible_answer
+
+
+def test_answer_respects_term_first_gate():
+    assert answer_respects_term_first(f"{SECTION_TERMS}\n词。\n{SECTION_FORMAL}\n定义。")
+    assert answer_respects_term_first(f"{SECTION_TERMS}\n只有拆词也行。")
+    assert not answer_respects_term_first("直接给定义，没有拆词。")
+    formal_first = f"{SECTION_FORMAL}\n定义先出。\n{SECTION_TERMS}\n词后补。"
+    assert not answer_respects_term_first(formal_first)
 
 
 def test_openai_teacher_client_uses_responses_api_and_output_text():

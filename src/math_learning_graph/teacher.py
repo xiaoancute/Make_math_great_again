@@ -117,6 +117,16 @@ def _placement_text(
     return f"学生摸底水平：{level}。{summary}"
 
 
+def _age_register(age: int) -> str:
+    if age <= 9:
+        return "对方是年幼的孩子：句子要短，多用能摸到的实物和生活场景，避免抽象记号。"
+    if age <= 15:
+        return "对方是中小学生：可以用课堂例子，但每个术语第一次出现仍要先用人话解释。"
+    if age <= 22:
+        return "对方是高中生或大学生：可以更快进入符号和推理，但依然先拆词，不堆黑话。"
+    return "对方是成年自学者：语气平等务实，不要孩子气；但同样先把术语拆成人话再给正式说法。"
+
+
 def build_teacher_prompt(
     point: KnowledgePoint,
     student_age: int,
@@ -139,7 +149,7 @@ def build_teacher_prompt(
     learning_memory = _learning_memory_text(learning_profile, topic_names, memory_records)
     placement = _placement_text(placement_level, placement_summary)
 
-    return f"""你是一名面向{student_age}岁学生的数学老师。
+    return f"""你是一名中文数学老师，对方是{student_age}岁的学习者。{_age_register(student_age)}
 
 产品目标：让学生不在术语上犯困，先听懂「到底在讲什么」，再碰课本说法。
 
@@ -198,7 +208,9 @@ def build_teacher_answer(
     placement_summary: str | None = None,
 ) -> str:
     """Deterministic local teacher: terms first, formal definition last among core blocks."""
-    _ = student_age  # API symmetry with build_teacher_prompt
+    # ponytail: static lesson ignores age on purpose — register comes from the topic's
+    # grade band; per-age adaptation is the AI path's job (see _age_register).
+    _ = student_age
     examples = _join_or_default(
         point.life_examples,
         "自己找一个能数、能分、能比的例子。",
@@ -265,3 +277,15 @@ def answer_section_order(answer: str) -> list[str]:
     found = [(answer.find(header), header) for header in headers if header in answer]
     found.sort(key=lambda item: item[0])
     return [header for _, header in found]
+
+
+def answer_respects_term_first(answer: str) -> bool:
+    """North-star gate for a teacher answer: the plain-language terms block must be
+    present and must come before the textbook definition. Looser than a fixed
+    six-header template so a genuinely good model answer isn't discarded for an
+    intro line or a reordered example — it only enforces 先词后事."""
+    if SECTION_TERMS not in answer:
+        return False
+    if SECTION_FORMAL in answer:
+        return answer.index(SECTION_TERMS) < answer.index(SECTION_FORMAL)
+    return True
